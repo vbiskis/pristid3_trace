@@ -70,6 +70,7 @@ profs <- function(id, elrats, hardtype,
   cc <<- make_plot(id, "Li_Ca_mav", "orange",    "Li:Ca", NULL, sp, show_In, thin)
   d  <<- make_plot(id, "Mg_Ca_mav", "purple",    "Mg:Ca", NULL, sp, show_In, thin)
   f  <<- make_plot(id, "Zn_Ca_mav", "brown",      "Zn:Ca", NULL, sp, show_In, thin)
+  g  <<- make_plot(id, "Ca43_CPS", "pink", "Ca", sv$sr, sp, show_In, thin)
   
   if(!is.null(img_path)){
     img <- image_read(img_path)
@@ -82,6 +83,7 @@ profs <- function(id, elrats, hardtype,
     plot(a / b)
     plot(cc / d)
     plot(e / f)
+    #plot(g)
   }
   
   return(id)

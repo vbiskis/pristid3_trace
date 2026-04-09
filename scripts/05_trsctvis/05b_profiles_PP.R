@@ -35,7 +35,7 @@ p4468 <- PPPro %>%
   filter(SpecID == "4468", 
          true_dist >= ca_st, true_dist <= 41500)
 
-px4468<- profs(p4468, el_all, "tooth", span = 0.1)
+px4468<- profs(p4468, el_all, "tooth", span = 0.05)
 
 ##4469----
 prist_id <- c("10_4469FullT1 - 01.csv", 
@@ -56,7 +56,7 @@ for(id in prist_id){
            true_dist <= max(true_dist[which(In_Ca < 5)]))
   
   if(nrow(dat_p) > 0){
-    profs(dat_p, el_all, "tooth", span = 0.1)
+    profs(dat_p, el_all, "tooth", span = 0.05)
     pristeeth[[gsub("^[0-9]+_| - 01\\.csv$", "", id)]] <- list(a=a, b=b, cc=cc, d=d, e=e, f=f)
   }
 }

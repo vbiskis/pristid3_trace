@@ -27,8 +27,9 @@ a4224 <- ACPro %>%
 a4224 <- a4224 %>% 
   filter(true_dist >= ca_st, true_dist <= ca_end) # it works! going off values of Ca better than In
 
-a4224t <- profs(a4224, el_all, "tooth", 
-                img_path = 'data/transects/imgs/QBFP004224/004224-Full-fwd.jpg') 
+a4224t <- profs(a4224, el_all, "tooth", span = 0.1
+                #img_path = 'data/transects/imgs/QBFP004224/004224-Full-fwd.jpg'
+                ) 
 #can leave out if not available
 
 ## vert comparison ----
