@@ -79,8 +79,7 @@ map_cols <- c("#A50026", #WCY
 sitemap <- ggplot() +
   geom_sf(data = qld0, fill = "gray90", color = "black") +
   geom_sf(data = pts_centroids, aes(color = RivGrp), size = 3) +
-  labs(x = "Longitude", y = "Latitude", 
-       color = "River Groups") +
+  labs(x = "Longitude", y = "Latitude", color = "River Groups") +
   scale_color_brewer(palette = "RdYlGn", name = "River Groups") +
   scale_color_manual(values = rev(map_cols)) +
   annotation_custom(
