@@ -1,0 +1,64 @@
+Bottle name,ShortName,AquaOrWildSite,Area,Year,Month,Season,Salty,Latitude,Longitude,Calcium_mol,Aluminium_mmol,Barium_mmol,Boron_mmol,Cadmium_mmol,Copper_mmol,Iron_mmol,Lead_mmol,Magnesium_mmol,Manganese_mmol,Nickel_mmol,Phosphorus_mmol,Potassium_mmol,Selenium_mmol,Sodium_mmol,Strontium_mmol,Sulfur_mmol,Uranium_mmol,Zinc_mmol,Conductivity,SrIsotopes,Salinity
+AIMS bridge,AIMS-bridge,wild,AIMSsaltflats,2019,February,wet,yes,-19.395186,147.022964,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+AIMS salt flats,AIMS-bridge,wild,AIMSsaltflats,2020,February,wet,yes,-19.395186,147.022964,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Salt flats at hi tid,AIMS-mouth,wild,Marine-AIMS,2019,June,dry,yes,-19.300878,147.043323,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Burdekin at Anabranch Bridge,Burd-Anabran,wild,BurdIrrigation,2019,February,wet,no,-19.625405,147.482742,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Barratta Creek,Burd-Barrattas,wild,BurdIrrigation,2019,April,wet,no,-19.567973,147.207072,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+E Barratta's at Bruce,Burd-Barrattas,wild,BurdIrrigation,2020,February,wet,no,-19.56949,147.222052,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Didgeridoo lagoon,Burd-Didge,wild,BurdIrrigation,2019,August,dry,no,-19.560723,147.247639,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Burd irri channel,Burd-irrig,stocked,BurdIrrigation,2020,November,dry,no,-19.58904,147.397985,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Jerona outgoing,Burd-JeronaRd,wild,Marine-BGB,2019,November,dry,yes,-19.513845,147.218784,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Barratta's at Jerona,Burd-JeronaRd,wild,BurdIrrigation,2020,February,wet,no,-19.513845,147.218784,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Lillismere,Burd-Lillismere,stocked,BurdIrrigation,2019,November,dry,no,-19.518036,147.419893,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Lillismere,Burd-Lillismere,stocked,BurdIrrigation,2020,February,wet,no,-19.518036,147.419893,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Burdekin estuary - Rita Island,Burd-mouth,wild,Marine-Burdekin,2018,November,dry,yes,-19.663637,147.527879,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Burdekin mouth,Burd-mouth,wild,BurdIrrigation,2020,February,wet,no,-19.663637,147.527879,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Rita,Burd-mouth,wild,Marine-Burdekin,2020,November,dry,yes,-19.663637,147.527879,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Alligator Creek,Cleveland-AlligatorCkFresh,wild,TSVCks,2019,April,wet,no,-19.388219,146.957034,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Alligator ck below weir,Cleveland-AlligatorCkSalt,wild,Marine-Ross,2019,August,dry,yes,-19.362938,146.970421,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Crocodile Ck,Cleveland-CrocCk,wild,Marine-Ross,2019,June,dry,yes,-19.387241,147.014767,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Saltwater ck at Guth,Guth-SaltCk,wild,UpstartCks,2020,February,wet,no,-19.948344,147.922379,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Barra Creek boat ramp,Haught-BarraCk,wild,Marine-BGB,2019,February,wet,yes,-19.479586,147.150848,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Crooked Waterhole lagoon,Haught-Crooked,wild,Giru,2019,August,dry,no,-19.517772,147.090193,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Crooked Waterhole,Haught-Crooked,wild,Giru,2020,February,wet,no,-19.517805,147.093768,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Haughton Giru weir above,Haught-Giru,stocked,Giru,2018,November,dry,no,-19.512679,147.112332,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Haughton at Giru,Haught-Giru,stocked,Giru,2019,June,dry,no,-19.512679,147.112332,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Giru Weir,Haught-Giru,stocked,Giru,2020,February,wet,no,-19.512679,147.112332,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Haughton Giru,Haught-Giru,stocked,Giru,2020,November,dry,no,-19.512679,147.112332,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Haughton Heatleys lagoon,Haught-Heatleys,wild,Giru,2018,November,dry,no,-19.516906,147.045995,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Haughton estuary - Cungulla Beach,Haught-mouth,wild,Marine-BGB,2018,November,dry,yes,-19.411312,147.116264,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Reed Beds Lagoon,Haught-ReedBeds,wild,Giru,2019,August,dry,no,-19.499366,147.05127,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Reed Bed,Haught-ReedBeds,wild,Giru,2020,February,wet,no,-19.499366,147.05127,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Cattle creek,Ingham-CattleCk,wild,Ingham,2019,August,dry,no,-18.714525,146.108619,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Cattle Ck at Bruce,Ingham-CattleCk,wild,Ingham,2020,February,wet,no,-18.734647,146.14108,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Trebonne Creek,Ingham-TrebCk,wild,Ingham,2019,April,wet,no,-18.738313,146.198335,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Ross  Alpins weir above,Ross-Aplins,stocked,RossFresh,2018,November,dry,no,-19.30468,146.781019,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Above Aplin's,Ross-Aplins,stocked,RossFresh,2019,April,wet,no,-19.30468,146.781019,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Aplins weir,Ross-Aplins,stocked,RossFresh,2020,February,wet,no,-19.30468,146.781019,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Aplin's,Ross-Aplins,stocked,RossFresh,2020,November,dry,no,-19.30468,146.781019,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Ross Blacks weir above,Ross-Blacks,stocked,RossFresh,2018,November,dry,no,-19.34905,146.73166,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Black's,Ross-Blacks,stocked,RossFresh,2020,November,dry,no,-19.34905,146.73166,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Ross Dam,Ross-dam,stocked,RossFresh,2019,April,wet,no,-19.429937,146.738035,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Ross Dam,Ross-dam,stocked,RossFresh,2019,November,dry,no,-19.429937,146.738035,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Ross Dam,Ross-dam,stocked,RossFresh,2020,February,wet,no,-19.429937,146.738035,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Dam,Ross-dam,stocked,RossFresh,2020,November,dry,no,-19.429937,146.738035,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Gleeson's below Black's,Ross-Gleesons,stocked,RossFresh,2020,February,wet,no,-19.315906,146.736257,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Ross estuary - main large boatramp #D,Ross-mouth,wild,Marine-Ross,2018,November,dry,yes,-19.275335,146.830675,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes,NA
+Ross River jetty,Ross-mouth,wild,Marine-Ross,2019,February,wet,yes,-19.275335,146.830675,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Ross Mouth,Ross-mouth,wild,Marine-Ross,2020,February,wet,yes,-19.275335,146.830675,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Ross ramp,Ross-mouth,wild,Marine-Ross,2020,November,dry,yes,-19.275335,146.830675,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Black River at Bruce,TSV-BlackRiver,wild,TSVCks,2020,February,wet,no,-19.227514,146.629221,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Bluewater,TSV-Bluewater,wild,TSVCks,2019,November,dry,no,-19.176311,146.552749,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Bluewater,TSV-Bluewater,wild,TSVCks,2020,February,wet,no,-19.176311,146.552749,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Bohle at St Clare's,TSV-Bohle,wild,Marine-TSVCks,2019,November,dry,yes,-19.25816,146.706871,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Bohle at St Clare,TSV-Bohle,wild,TSVCks,2020,February,wet,no,-19.25816,146.706871,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+JR15 - Little Bohle River @Her,TSV-Bohle-fresh,wild,TSVCks,2018,August,dry,no,-19.3201,146.70096,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Bohle at Ring Road,TSV-Bohle-fresh,wild,TSVCks,2019,November,dry,no,-19.262559,146.705397,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Stuart Ck at Bruce Hwy,TSV-StuartCk,wild,TSVCks,2019,November,dry,no,-19.321821,146.837451,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Stuart Ck at Bruce,TSV-StuartCk,wild,TSVCks,2020,February,wet,no,-19.321821,146.837451,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Cape Creek at Bruce,Upstart-CapeCk,wild,UpstartCks,2019,February,wet,no,-19.902055,147.75906,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Cape ck,Upstart-CapeCk,wild,UpstartCks,2020,February,wet,no,-19.902055,147.75906,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Saltwater ck,Upstart-Mtink,wild,UpstartCks,2019,August,dry,no,-19.773321,147.515773,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+Mt Inkerman Saltwater Creek at,Upstart-Mtink,wild,UpstartCks,2019,February,wet,no,-19.773321,147.515773,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes
+Saltwater ck at Mt Ink,Upstart-Mtink,wild,UpstartCks,2020,February,wet,no,-19.773321,147.515773,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes
+RM Creek,Upstart-RMCk,wild,UpstartCks,2020,February,wet,no,-19.869901,147.667908,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,NA,yes

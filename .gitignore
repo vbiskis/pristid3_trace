@@ -50,3 +50,5 @@ pilot/
 
 # mac files
 *.DS_Store
+
+# eventually will remove data folder
