@@ -20,8 +20,13 @@ daf <- read_xlsx('data/enviro/daf/forUSC_all wild water samples.xlsx')
 
 ## Clean it up----
 # extract the numeric value after <
+daf <- daf %>% 
+  mutate(salty = case_when(`Conductivity @ 25º C_µS/cm` > 5000 | Salty_NA == "yes" ~ 'sea',
+                           `Conductivity @ 25º C_µS/cm` > 1500 & `Conductivity @ 25º C_µS/cm` < 5000 ~ 'brackish', 
+                           .default = 'fresh'))  #were going to need him for later
+
 daf_lod <- daf %>% 
-  mutate(across(12:ncol(.), ~ if_else(
+  mutate(across(12:ncol(.) & !matches("salty"), ~ if_else( 
     str_starts(., "<"), 
     as.double(str_remove(., "<")) * 0.5,  # half-LOD substitution
     as.double(.)
@@ -60,7 +65,7 @@ daf_cl <- daf_cl %>%
   )
 
 daf_good <- daf_cl %>% 
-  select(2:3, 5:8 , 10:11, all_of(el))
+  select(2:3, salty, 5:8 , 10:11, all_of(el))
 
 daf_good <- daf_good %>%
   mutate(across(all_of(el), ~ if_else(is.na(.), min(., na.rm = TRUE), .)))

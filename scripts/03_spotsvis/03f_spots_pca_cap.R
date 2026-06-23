@@ -50,13 +50,24 @@ scale_factor <- max(abs(pca_all$x[,1:2]))/ max(abs(loadings[,1:2]))
 loadings_scaled <- as.data.frame(loadings*scale_factor*0.75)
 loadings_scaled$Element <- rownames(loadings_scaled)
 
-PCA_all +
+library(ggrepel)
+p1 <- PCA_all +
   geom_segment(data = loadings_scaled,
                aes(x = 0, y = 0, xend = PC1, yend = PC2),
                arrow = arrow(length = unit(0.3, "cm")), color = "grey10") +
-  geom_text(data = loadings_scaled, aes(x = PC1, y = PC2, label = Element),
+  geom_text_repel(data = loadings_scaled, aes(x = PC1, y = PC2, label = Element),
             hjust = -0.2, vjust = 0.2, size = 4, 
             color = "grey10", family = "optima")
+
+ggsave(
+  "pca_all.png",
+  plot = p1,
+  bg = "transparent",
+  path = 'figures/grantrep/',
+  scale = 1,
+  width = 8,
+  height = 6,
+  dpi = 300)
 
 library(factoextra)
 fviz_eig(pca_all)
@@ -65,4 +76,6 @@ fviz_pca_var(pca_all,
              gradient.cols = c("blue", "yellow", "red"),
              repel = TRUE) # ah remove those then
 
-contrib <- get_pca_var(pca_all)
+get_pca_var(pca_all)$cos2
+
+saveRDS(pca_all, file = "data/output/pca_spots_base.rds")
