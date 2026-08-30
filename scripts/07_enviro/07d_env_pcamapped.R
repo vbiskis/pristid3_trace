@@ -44,6 +44,14 @@ PCA_all <- ggplot() +
 library(ggrepel)
 library(ggnewscale)
 
+loadings <- pca_all$rotation  
+loadings_df <- as.data.frame(loadings)
+loadings_df$Element <- rownames(loadings_df)
+
+scale_factor <- max(abs(pca_all$x[,1:2]))/ max(abs(loadings[,1:2]))
+loadings_scaled <- as.data.frame(loadings*scale_factor*0.75)
+loadings_scaled$Element <- rownames(loadings_scaled)
+
 p3 <- PCA_all +
   geom_segment(data = loadings_scaled,
                aes(x = 0, y = 0, xend = PC1, yend = PC2),

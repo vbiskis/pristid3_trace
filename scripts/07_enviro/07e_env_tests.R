@@ -51,6 +51,14 @@ cap_water_partial <- capscale(water_mat ~ Region + Condition(as.factor(Year) + S
                               distance = "euclidean")
 unique(waterdat$Year)
 
+teeth_sub <- microE %>% 
+  filter(RivGrp %in% c('RG10', 'RG05', 'RG06'),
+         Year >= 2015)
+
+teeth_mat_sub <- teeth_sub %>% 
+  dplyr::select(all_of(lnrats)) %>% 
+  na.omit()
+
 cap_teeth_partial <- capscale(teeth_mat_sub ~ Region + Condition(as.factor(Year), Species),
                               data = teeth_sub,
                               distance = "euclidean")

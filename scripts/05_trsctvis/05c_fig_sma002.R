@@ -14,8 +14,7 @@ source('helpers/functions/fxn_mavs.R')
 source('helpers/functions/fxn_profile.R')
 profclean <- readRDS('data/output/prof_processed.RDS')
 transsplit <- readRDS('data/output/transsplit.RDS')
-sapply(transsplit, function(df) unique(df$ID))
-
+names(transsplit)[54:60] 
 # want 58-60 for SMA002
 #58 tooth bleach
 #59 tooth water

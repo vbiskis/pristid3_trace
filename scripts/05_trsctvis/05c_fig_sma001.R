@@ -14,25 +14,30 @@ set_theme(mytheme)
 source('helpers/functions/fxn_mavs.R')
 source('helpers/functions/fxn_profile.R')
 transsplit <- readRDS('data/output/transsplit.RDS')
-sapply(transsplit, function(df) unique(df$ID))
-
+names(transsplit)[54:60] # and I can easily check this bc I was smart earlier and named things
 # want 54-57 for SMA001
-#54 tooth bleach
-#55 tooth water
-#56 vert bleach 
-#57 vert water
 
 # water----
 ## tooth----
 SMA001T <- transsplit[[55]]
-SMA001T <- SMA001T %>% 
-  filter(true_dist >= true_dist[which(In_Ca < 5)][1],
-         # true_dist <= true_dist[tail(which(In_Ca < 5), 1)],
-         true_dist <= 55002) # manually removing the end due to contamination
+# sanity check:
+get_spikes(id = SMA001T) %>% 
+  round(digits = 2)
 
-SMA001T_filt <- profs(SMA001T, el_all, "tooth", span = 0.03, window_size = 81,
-                      # img_path = "data/transects/imgs/SMA001/SMA001-H-sm.jpg", #seems to be half, so double span
-                      show_In = FALSE)
+# only 220 um from tip (start) and 120 from end off the sample
+SMA001T %>% 
+  filter(true_dist >= 220, true_dist <= 54520) %>% na.omit()
+
+# remind myself... what is a window size of 21 (10 pts each side) in um:
+samp_intt <- mean(diff(sort(SMA001T$true_dist)), na.rm = TRUE)
+samp_intt*5 # ws(21) = 43 um
+samp_intt*10 # ws(21) = 86 um
+samp_intt*12 # ws(25) = 104 um
+
+SMA001T_plot <- profs(SMA001T, el_all, "tooth", # alt_denom = "Ba", # data types incl.
+                      span = 0.01, window_size = 11, # stats
+                      img_path = "data/imgs/SMA001/SMA001HT/SMA001-H-sm.jpg", # cool visual
+                      show_In = FALSE, In_style = "rect", rect_threshold = 0.75) # contamination check
 
 sma01a <- a + theme(axis.title.x = element_blank())
 sma01b <- b + theme(axis.title.x = element_blank())
@@ -42,12 +47,25 @@ sma01e <- e
 
 ## vert----
 SMA001V <- transsplit[[57]]
-SMA001V <- SMA001V %>% 
-  filter(true_dist >= true_dist[which(In_Ca < 10)][1], # not confident in the effect of In enough to go bigger
-         true_dist <= true_dist[tail(which(In_Ca < 1), 1)])
 
-SMA001V_filt <- profs(SMA001V, el_all, "vert", # need image!
-                      span = 0.01, window_size = 81, show_In = FALSE)
+get_spikes(id = SMA001V) %>% 
+  # filter(max_In_Ca >= 4) %>% 
+  round(digits = 2)
+
+# overshoot at the end measured as 587 um
+SMA001V <- SMA001V %>% 
+  filter(true_dist >= 300, true_dist <= 10286) %>% na.omit()
+
+SMA001V_plot <- profs(SMA001V, el_all, "vert", # alt_denom = "Ba", 
+                      img_path = "data/imgs/SMA001/SMA001HV/SMA001-H-bw-crop.jpg",
+                      span = 0.025, window_size = 31, # thin = 2,
+                      show_In = FALSE, In_style = "points")
+
+samp_intv <- mean(diff(sort(SMA001V$true_dist)), na.rm = TRUE)
+samp_intv*10 # ws(21) = 29 um! much less, noisier
+samp_intv*15 # ws(31) = 43, matching teeth
+samp_intv*20 # ws(21) = 60 um
+samp_intv*35 # ws(71) = 101 um
 
 sma01va <- a + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
 sma01vb <- b + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
@@ -96,13 +114,19 @@ ggsave(
 # bleach ----
 ## tooth----
 SMA001TB <- transsplit[[54]]
+get_spikes(SMA001TB_filt)
 
 SMA001TB <- SMA001TB %>% 
-  filter(true_dist >= 10000, # big hole or some sh
-         true_dist <= 54279)
+  filter(true_dist >= 220, 
+         true_dist <= 54819,
+         In_Ca < 20)
 
-SMA001TB_filt <- profs(SMA001TB, el_all, "tooth", 
-                       span = 0.03, window_size = 81, show_In = FALSE)
+# overshoot at tip unknown (can't see)
+# overshoot at the end measured as 1050 um
+
+SMA001TB_plot <- profs(SMA001TB_filt, el_all, "tooth", # alt_denom = "Ba",
+                       span = 0.01, window_size = 11, 
+                       show_In = TRUE, In_style = "rect")
 
 sma01a2 <- a + theme(axis.title.x = element_blank())
 sma01b2 <- b + theme(axis.title.x = element_blank())
@@ -113,11 +137,20 @@ sma01f2 <- f + theme(axis.title.x = element_blank())
 
 ## vert----
 SMA001VB <- transsplit[[56]]
-SMA001VB <- SMA001VB %>% 
-  filter(true_dist >= true_dist[which(In_Ca < 10)][1], # adjust to see window move (2, 5, 10)
-         true_dist <= true_dist[tail(which(In_Ca < 1), 1)])
 
-SMA001VB_filt <- profs(SMA001VB, el_all, "vert", span = 0.01, window_size = 81, show_In = FALSE)
+get_spikes(id = SMA001VB) %>% 
+  # filter(max_In_Ca >= 2) %>% 
+  round(digits = 2)
+
+# overshoot at the end measured as 220 um
+
+SMA001VB <- SMA001VB %>% 
+  filter(true_dist >= 600,
+         true_dist <= 9843.7)
+
+SMA001VB_plot <- profs(SMA001VB, el_all, "vert", alt_denom = "Ba",
+                       span = 0.025, window_size = 31, 
+                       show_In = TRUE, In_style = "points") # wow that is cool
 
 sma01va2 <- a + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
 sma01vb2 <- b + theme(axis.title.x = element_blank(), axis.title.y = element_blank())

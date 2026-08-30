@@ -12,7 +12,7 @@ source('helpers/microHelp.R')
 profiles <- read_xlsx('data/output/profiles.xlsx')
 library(writexl)
 
-#fix df----
+# fix df----
 transdat <- profiles %>% 
   mutate(SpecID = case_when(str_detect(ID, "_[0-9]") ~ str_extract(ID, "(?<=_)[0-9]+"),
                            str_detect(ID, "SMA") ~ str_extract(ID, "SMA[0-9]+"),
@@ -33,6 +33,7 @@ transdat <- profiles %>%
          Speed = gsub("_.*", "", ID)) %>% 
   dplyr::select(SpecID, Species, Type, Loc, Bath, everything())
 
+#3 check----
 transdat %>%
   group_by(SpecID) %>%
   reframe(Spec = unique(Species),
@@ -54,9 +55,10 @@ transum <- transdat %>%
             Bath = unique(Bath)) %>% 
   dplyr::select(ID, SpecID, Spec, Type, Loc, Bath)
 
+# set absolute time----
 # earlier teeth were run backwards! lets fix:
 revids <- unique(transum %>% filter(Loc == "full", Type == "tooth", Bath == "bleach", Spec != "anoxy"))$ID
-#but this misses two
+# but this misses two
 revids_all <- c(revids, "30_NB028Transect - 01.csv", "30_4224Transect - 01.csv") # older green + anoxy
 
 transdat <- transdat %>%
@@ -65,7 +67,7 @@ transdat <- transdat %>%
                                .default = distance)) %>%
   ungroup()
 
-#Using inflection In_Ca----
+# find boundarie----
 transdatall <- transdat %>% 
   group_by(ID) %>%
   mutate(start = ifelse(any(In_Ca < 10), min(true_dist[which(In_Ca < 10)]), NA),
@@ -78,7 +80,37 @@ transdatall <- transdat %>%
 transsplit <- transdat %>% 
   group_split(SpecID, Type, Loc, Bath) 
 
-saveRDS(object = transdatall, file = "data/output/prof_processed.RDS") # all one, cleaned
-saveRDS(object = transsplit, file = "data/output/transsplit.RDS") #individual dfs
+# save----
+saveRDS(object = transdatall, file = "data/output/prof_processed.RDS") # all one, cleaned, but so so long
 write_xlsx(transum, "data/output/transum.xlsx") #summary of all profs
 
+names(transsplit) <- sapply(transsplit, function(df) unique(df$ID[1])) # name it to write
+# mm thats good but need to remove some of the length here for file naming
+names(transsplit) <- sub("^[0-9]+_", "", names(transsplit))   # speed since it's a col now
+names(transsplit) <- sub(" - [0-9]+\\.csv$", "", names(transsplit))  # remove trailing .csv
+names(transsplit) # quick check - gotcha!
+saveRDS(object = transsplit, file = "data/output/transsplit.RDS") # individual dfs, now with name for easy lookup
+
+## for scope lookup----
+# split by spec and aims so xlsx not so massive
+
+### pristis----
+which(sapply(transsplit, function(df) unique(df$Species[1]) == "pristis")) #gotcha
+writexl::write_xlsx(transsplit[19:25],
+                    path = "data/output/profiles_individual/pristis-tooth-only.xlsx")
+writexl::write_xlsx(transsplit[54:60],
+                    path = "data/output/profiles_individual/pristis-aquaria.xlsx")
+
+### zijsron----
+which(sapply(transsplit, function(df) unique(df$Species[1]) == "zijsron")) #gotcha
+writexl::write_xlsx(transsplit[c(4:8, 16:18, 52:53)],
+                    path = "data/output/profiles_individual/zijsron.xlsx")
+
+### anoxypristis----
+which(sapply(transsplit, function(df) unique(df$Species[1]) == "anoxy")) #gotcha
+writexl::write_xlsx(transsplit[c(1:3, 9:15, 26:28)],
+                    path = "data/output/profiles_individual/anoxy-tooth-only.xlsx")
+
+which(sapply(transsplit, function(df) unique(df$Species[1]) == "anoxy")) #gotcha
+writexl::write_xlsx(transsplit[29:51], # eek thats big
+                    path = "data/output/profiles_individual/anoxy-with-verts.xlsx")
