@@ -1,5 +1,5 @@
 # Details ----
-#' dtw.R
+#' dtwV.R
 #' Paper: [The potential of elemental analysis in determining origin of sawfish rostra]
 #' DOI: tbd
 #' Author: Nikki Biskis
@@ -65,26 +65,7 @@ plot_overlap <- function(alignment, datT, datV, elements, spanT, spanV, n = 2000
     )
 }
 
-plot_overlap(final, SMA001TB_filt, SMA001VB_filt %>% filter(true_dist >= 1300), 
-             names(span_vec[mavs1]),
-             spanT = span_vecv, spanV = span_vec,
-             n = 6000)
-plot(final, type = "twoway", off = 1)
+plot_overlap(mult1h6, SMA001T_filt, SMA001V_filt, 
+             mavs2, spanT = 0.04, spanV = 0.01, n = 6000)
 
-plot_overlap(final2, SMA001T_filt, SMA001V_filt %>% filter(true_dist >= 1980), 
-             names(span_vec[mavs1]),
-             spanT = span_vecv, spanV = span_vec,
-             n = 6000)
-
-plot(final2, type = "twoway", off = 1) # its cool that they have the same pattern basically 
-# for both teeth-vert combo
-
-# sma002
-plot_overlap(finalsma2, SMA002T_filt, SMA002V_filt, 
-             names(span_vec[mavs1]),
-             spanT = span_vecv, spanV = span_vec,
-             n = 6000)
-
-plot(finalsma2, type = "twoway", off = 1) # its cool that they have the same pattern basically 
-# for both teeth-vert combo
-
+plot(mult1h6, type = "twoway", offset = 1)

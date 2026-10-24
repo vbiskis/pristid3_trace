@@ -39,6 +39,66 @@ get_spikes <- function(id, threshold = 0.5){
   })
 }
 
+# actually lets find a way to remove them entirely:
+flag_holes <- function(dat, in_col = "In_Ca", trigger = 4, release = 2){
+  dat <- dat[order(dat$true_dist), ]
+  inn <- dat[[in_col]]
+  above <- !is.na(inn) & inn >= release
+  
+  r      <- rle(above)
+  ends   <- cumsum(r$lengths)
+  starts <- ends - r$lengths + 1
+  hole   <- rep(FALSE, nrow(dat))
+  tab    <- data.frame(start_dist = numeric(0), end_dist = numeric(0),
+                       peak_In = numeric(0), n_points = integer(0))
+  
+  for(k in which(r$values)){
+    i <- starts[k]:ends[k]
+    if(max(inn[i]) > trigger){
+      hole[i] <- TRUE
+      tab <- rbind(tab, data.frame(start_dist = dat$true_dist[starts[k]],
+                                   end_dist   = dat$true_dist[ends[k]],
+                                   peak_In    = max(inn[i]),
+                                   n_points   = length(i)))
+    }
+  }
+  dat$.hole <- hole
+  attr(dat, "holes") <- tab
+  dat
+}
+
+plot_holes <- function(dat, elements, in_col = "In_Ca", trigger = 4, release = 2,
+                       show_removed = TRUE){
+  d     <- flag_holes(dat, in_col, trigger, release)
+  holes <- attr(d, "holes")
+  
+  long <- do.call(rbind, lapply(c(elements, in_col), function(el)
+    data.frame(panel = el, true_dist = d$true_dist, value = d[[el]], hole = d$.hole)))
+  long$panel <- factor(long$panel, c(elements, in_col))
+  if(!show_removed) long <- long[!long$hole, ]
+  
+  thr <- data.frame(panel = factor(in_col, levels(long$panel)), y = c(trigger, release))
+  
+  p <- ggplot(long, aes(true_dist, value)) +
+    { if(nrow(holes) > 0) geom_rect(data = holes,
+                                    aes(xmin = start_dist, xmax = end_dist, ymin = -Inf, ymax = Inf),
+                                    fill = "grey90", inherit.aes = FALSE) } +
+    geom_point(data = long[!long$hole, ], size = 0.4, colour = "black") +
+    { if(show_removed) geom_point(data = long[long$hole, ], size = 0.4, colour = "grey60") } +
+    geom_hline(data = thr, aes(yintercept = y), linetype = c("solid", "dashed"),
+               colour = "red", linewidth = 0.3) +
+    facet_wrap(~ panel, ncol = 1, scales = "free_y") +
+    scale_y_log10() +
+    labs(x = "Distance (µm)", y = NULL,
+         caption = sprintf("%d holes, %d of %d points removed (%.1f%%). Hole: run with In:Ca ≥ %g containing In:Ca > %g.",
+                           nrow(holes), sum(d$.hole), nrow(d), 100 * mean(d$.hole), release, trigger)) +
+    theme(plot.caption = element_text(hjust = 0))
+  
+  print(p)
+  invisible(list(data = d, holes = holes, plot = p))
+}
+
+# and regualr graphing----
 alt_ratio <- function(id, el, denom, use_mav = FALSE){
   in_suf  <- if(use_mav) "_Ca_mav" else "_Ca"
   out_suf <- if(use_mav) "_mav" else ""
@@ -73,7 +133,7 @@ make_plot <- function(id, y_var, color, y_lab, smooth_var = NULL, span = 0.25,
   s <- scale_In(id$In_Ca_mav, id[[y_var]])
   id_thin <- id[order(id$true_dist), ][seq(1, nrow(id), by = thin), ]
   
-  p <- ggplot(id) + theme_bw() + labs(x = "Distance (um)") +
+  p <- ggplot(id) + labs(x = "Distance (um)") +
     geom_point(data = id_thin, aes(x = true_dist, y = .data[[y_var]]), color = color, alpha = 0.4) +
     geom_smooth(aes(x = true_dist, y = .data[[smooth_var]]), method = "loess", 
                 span = span, color = "black", se = TRUE, n = 300)
@@ -102,9 +162,9 @@ profs <- function(id, elrats, hardtype,
   spikes <- get_spikes(id, threshold = rect_threshold)
   
   if(hardtype == "tooth"){
-    id <- id %>% filter(In_Ca <= 1)
+    id <- id %>% filter(In_Ca <= 20)
   } else {
-    id <- id %>% filter(In_Ca <= 10)
+    id <- id %>% filter(In_Ca <= 50)
   }
   
   all_els <- list(
@@ -129,15 +189,15 @@ profs <- function(id, elrats, hardtype,
   elrats_all <- unique(c(elrats, alt_cols))
   id <- id %>% group_modify(~ add_mavs(.x, elrats_all, window_size = window_size))
   
-  if(hardtype == "tooth") id <- id %>% filter(In_Ca_mav <= 5)
+  if(hardtype == "tooth") id <- id %>% filter(In_Ca_mav <= 20)
   
-  a  <<- make_plot(id, "Sr_Ca_mav", "darkgreen", "Sr:Ca", "Sr_Ca", span, show_In, In_style, thin, rect_threshold)
-  b  <<- make_plot(id, "Ba_Ca_mav", "darkblue",  "Ba:Ca", "Ba_Ca", span, show_In, In_style, thin, rect_threshold)
-  e  <<- make_plot(id, "Mn_Ca_mav", "lightblue", "Mn:Ca", "Mn_Ca", span, show_In, In_style, thin, rect_threshold)
-  cc <<- make_plot(id, "Li_Ca_mav", "orange",    "Li:Ca", "Li_Ca", span, show_In, In_style, thin, rect_threshold)
-  d  <<- make_plot(id, "Mg_Ca_mav", "purple",    "Mg:Ca", "Mg_Ca", span, show_In, In_style, thin, rect_threshold)
-  f  <<- make_plot(id, "Zn_Ca_mav", "brown",      "Zn:Ca", "Zn_Ca", span, show_In, In_style, thin, rect_threshold)
-  g  <<- make_plot(id, "Ca43_CPS", "pink", "Ca", "Ca43_CPS", span, show_In, In_style, thin, rect_threshold)
+  a  <- make_plot(id, "Sr_Ca_mav", "darkgreen", "Sr:Ca", "Sr_Ca", span, show_In, In_style, thin, rect_threshold)
+  b  <- make_plot(id, "Ba_Ca_mav", "darkblue",  "Ba:Ca", "Ba_Ca", span, show_In, In_style, thin, rect_threshold)
+  e  <- make_plot(id, "Mn_Ca_mav", "lightblue", "Mn:Ca", "Mn_Ca", span, show_In, In_style, thin, rect_threshold)
+  cc <- make_plot(id, "Li_Ca_mav", "orange",    "Li:Ca", "Li_Ca", span, show_In, In_style, thin, rect_threshold)
+  d  <- make_plot(id, "Mg_Ca_mav", "purple",    "Mg:Ca", "Mg_Ca", span, show_In, In_style, thin, rect_threshold)
+  f  <- make_plot(id, "Zn_Ca_mav", "brown",      "Zn:Ca", "Zn_Ca", span, show_In, In_style, thin, rect_threshold)
+  g  <- make_plot(id, "Ca43_CPS", "pink", "Ca", "Ca43_CPS", span, show_In, In_style, thin, rect_threshold)
   
   # --- alt-ratio panels, now using the smoothed mav column for points/rects
   #     and the raw (pre-smoothing) column for the loess smooth line ---
@@ -159,8 +219,8 @@ profs <- function(id, elrats, hardtype,
       scale_alpha_binned(range = c(0.1, 0.7), breaks = c(1, 2, 4), labels = c("<1", "2", ">4"),
                          limits = c(0, 10), oob = scales::squish, name = "In:Ca peak")
     )
-    a <<- a + rect_layer; b <<- b + rect_layer; e <<- e + rect_layer
-    cc <<- cc + rect_layer; d <<- d + rect_layer; f <<- f + rect_layer; g <<- g + rect_layer
+    a <- a + rect_layer; b <- b + rect_layer; e <- e + rect_layer
+    cc <- cc + rect_layer; d <- d + rect_layer; f <- f + rect_layer; g <- g + rect_layer
     if(length(alt_plots) > 0){
       for(el in names(alt_plots)) alt_plots[[el]] <- alt_plots[[el]] + rect_layer
     }
@@ -186,5 +246,8 @@ profs <- function(id, elrats, hardtype,
     }
   }
   
-  return(id)
+  invisible(list(
+    data  = id,
+    plots = c(list(Sr = a, Ba = b, Mn = e, Li = cc, Mg = d, Zn = f, Ca = g), alt_plots)
+  ))
 }

@@ -24,43 +24,60 @@ names(transsplit)[54:60]
 
 #SMA002----
 SMA002TB <- transsplit[[58]] 
+
+# bleach ----
+# lets remove In spikes
+b2 <- plot_holes(SMA002TB, trigger =  3, release = 1.5,
+                 elements = c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca")) # lol welp
+
 SMA002TB <- SMA002TB %>% 
-  filter(true_dist >= min(true_dist[which(In_Ca < 5)]), # this tooth is rough
-         true_dist <= max(true_dist[which(In_Ca < 5)])) # so bad we get very little of it, no matter the val
+  filter(# true_dist >= min(true_dist[which(In_Ca < 5)]), # this tooth is rough
+         true_dist <= 49907)
 
-SMA002TB_filt <- profs(SMA002TB, el_all, "tooth",
-                      show_In = TRUE) 
+SMA002TB_out <- profs(SMA002TB, el_all, "tooth", span = 0.01, window_size = 11, # stats
+                      show_In = TRUE, In_style = "points", 
+                      rect_threshold = 50) 
+SMA002TB_out$plots$Ca
 
-SMA002TH <- transsplit[[59]] 
-SMA002TH <- SMA002TH %>% 
-  filter(true_dist >= 130, #looks good! just to take the first 5 sec off
-         true_dist <= max(true_dist[which(In_Ca < 5)])) 
+sma02a2 <- SMA002TB_out$plots$Sr + theme(axis.title.x = element_blank())
+sma02b2 <- SMA002TB_out$plots$Ba + theme(axis.title.x = element_blank())
+sma02c2 <- SMA002TB_out$plots$Li + theme(axis.title.x = element_blank())
+sma02d2 <- SMA002TB_out$plots$Mg + theme(axis.title.x = element_blank())
+sma02e2 <- SMA002TB_out$plots$Mn 
 
-SMA002TH_filt <- profs(SMA002TH, el_all, "tooth", span = 0.2, thin = 5,
+# water----
+SMA002TH <- transsplit[[59]]
+
+h2 <- plot_holes(SMA002TH, trigger =  3, release = 1.5,
+                 elements = c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"))
+
+SMA002TH <- h2$data[!h2$data$.hole, ] # lol! k
+
+SMA002TH_out <- profs(SMA002TH, el_all, "tooth", span = 0.01, window_size = 11,
                       # img_path = "data/transects/imgs/SMA002/SMA002-Trsct.jpg", # still big
-                      show_In = TRUE) 
+                      show_In = TRUE, In_style = "points", ) 
+SMA002TH_out$plots$Ca
 
-sma02a <- a + theme(axis.title.x = element_blank())
-sma02b <- b + theme(axis.title.x = element_blank())
-sma02c <- cc + theme(axis.title.x = element_blank())
-sma02d <- d + theme(axis.title.x = element_blank())
-sma02e <- e
-sma02f <- f 
+sma02a <- SMA002TH_out$plots$Sr + theme(axis.title.x = element_blank())
+sma02b <- SMA002TH_out$plots$Ba + theme(axis.title.x = element_blank())
+sma02c <- SMA002TH_out$plots$Li + theme(axis.title.x = element_blank())
+sma02d <- SMA002TH_out$plots$Mg + theme(axis.title.x = element_blank())
+sma02e <- SMA002TH_out$plots$Mn 
 
-#vert specs
+# vert----
 SMA002V <- transsplit[[60]]
 SMA002V <- SMA002V %>% 
   filter(true_dist >= true_dist[which(In_Ca < 10)][1], # adjust to see window move (2, 5, 10)
-         true_dist <= 7900) # bc it comes back down, manual here
+         true_dist <= 7950) # bc it comes back down, manual here
 
-SMA002V_filt <- profs(SMA002V, el_all, "vert", span = 0.1, show_In = TRUE) # show Patrick!
+SMA002V_out <- profs(SMA002V, el_all, "vert", span = 0.025, show_In = TRUE) # show Patrick!
+SMA002V_out$plots$Ca
 
-sma02va <- a + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma02vb <- b + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma02vc <- cc + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma02vd <- d + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma02ve <- e 
-sma02vf <- f
+sma02va <- SMA002V_out$plots$Sr + theme(axis.title.x = element_blank())
+sma02vb <- SMA002V_out$plots$Ba + theme(axis.title.x = element_blank())
+sma02vc <- SMA002V_out$plots$Li + theme(axis.title.x = element_blank())
+sma02vd <- SMA002V_out$plots$Mg + theme(axis.title.x = element_blank())
+sma02ve <- SMA002V_out$plots$Mn 
 
 sma002 <- (sma02a + sma02va) / (sma02b + sma02vb) / (sma02c + sma02vc) / 
   (sma02d + sma02vd) & theme(plot.margin = margin(5, 5, 5, 5))

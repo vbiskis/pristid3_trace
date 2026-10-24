@@ -19,14 +19,19 @@ names(transsplit)[54:60] # and I can easily check this bc I was smart earlier an
 
 # water----
 ## tooth----
-SMA001T <- transsplit[[55]]
+SMA001T <- transsplit[[55]] %>% 
+  filter(true_dist >= 165, true_dist <= 55798) %>% na.omit()
+# 165 um from tip (start) and 169 from end off the sample
+
+# lets remove In spikes
+h1 <- plot_holes(SMA001T, trigger =  3, release = 1.5,
+                 elements = c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"))
+
+SMA001T <- h1$data[!h1$data$.hole, ]
+
 # sanity check:
 get_spikes(id = SMA001T) %>% 
   round(digits = 2)
-
-# only 220 um from tip (start) and 120 from end off the sample
-SMA001T %>% 
-  filter(true_dist >= 220, true_dist <= 54520) %>% na.omit()
 
 # remind myself... what is a window size of 21 (10 pts each side) in um:
 samp_intt <- mean(diff(sort(SMA001T$true_dist)), na.rm = TRUE)
@@ -34,32 +39,32 @@ samp_intt*5 # ws(21) = 43 um
 samp_intt*10 # ws(21) = 86 um
 samp_intt*12 # ws(25) = 104 um
 
-SMA001T_plot <- profs(SMA001T, el_all, "tooth", # alt_denom = "Ba", # data types incl.
-                      span = 0.01, window_size = 11, # stats
-                      img_path = "data/imgs/SMA001/SMA001HT/SMA001-H-sm.jpg", # cool visual
-                      show_In = FALSE, In_style = "rect", rect_threshold = 0.75) # contamination check
+SMA001T_out <- profs(SMA001T, el_all, "tooth", # alt_denom = "Ba", # data types incl.
+                      span = 0.05, window_size = 11, # stats
+                      # img_path = "data/imgs/SMA001/SMA001HT/SMA001-H-sm.jpg", # cool visual
+                      show_In = TRUE, In_style = "rect", rect_threshold = 0.75) # contamination check
 
-sma01a <- a + theme(axis.title.x = element_blank())
-sma01b <- b + theme(axis.title.x = element_blank())
-sma01c <- cc + theme(axis.title.x = element_blank())
-sma01d <- d + theme(axis.title.x = element_blank())
-sma01e <- e 
+SMA001T_out$plots$Ca
+
+sma01a <- SMA001T_out$plots$Sr + theme(axis.title.x = element_blank())
+sma01b <- SMA001T_out$plots$Ba + theme(axis.title.x = element_blank())
+sma01c <- SMA001T_out$plots$Li + theme(axis.title.x = element_blank())
+sma01d <- SMA001T_out$plots$Mg + theme(axis.title.x = element_blank())
+sma01e <- SMA001T_out$plots$Mn 
 
 ## vert----
-SMA001V <- transsplit[[57]]
+SMA001V <- transsplit[[57]] %>% 
+  filter(# true_dist >= 707, 
+    true_dist <= 10659.44) %>% na.omit()
 
 get_spikes(id = SMA001V) %>% 
   # filter(max_In_Ca >= 4) %>% 
-  round(digits = 2)
+  round(digits = 2) # no holes, just In at start
 
-# overshoot at the end measured as 587 um
-SMA001V <- SMA001V %>% 
-  filter(true_dist >= 300, true_dist <= 10286) %>% na.omit()
-
-SMA001V_plot <- profs(SMA001V, el_all, "vert", # alt_denom = "Ba", 
-                      img_path = "data/imgs/SMA001/SMA001HV/SMA001-H-bw-crop.jpg",
+SMA001V_out <- profs(SMA001V, el_all, "vert", # alt_denom = "Ba", 
+                      # img_path = "data/imgs/SMA001/SMA001HV/SMA001-H-bw-crop.jpg",
                       span = 0.025, window_size = 31, # thin = 2,
-                      show_In = FALSE, In_style = "points")
+                      show_In = TRUE, In_style = "points")
 
 samp_intv <- mean(diff(sort(SMA001V$true_dist)), na.rm = TRUE)
 samp_intv*10 # ws(21) = 29 um! much less, noisier
@@ -67,12 +72,13 @@ samp_intv*15 # ws(31) = 43, matching teeth
 samp_intv*20 # ws(21) = 60 um
 samp_intv*35 # ws(71) = 101 um
 
-sma01va <- a + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vb <- b + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vc <- cc + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vd <- d + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01ve <- e
-sma01vin <- f
+SMA001V_out$plots$Ca
+
+sma01va <- SMA001V_out$plots$Sr + theme(axis.title.x = element_blank())
+sma01vb <- SMA001V_out$plots$Ba + theme(axis.title.x = element_blank())
+sma01vc <- SMA001V_out$plots$Li + theme(axis.title.x = element_blank())
+sma01vd <- SMA001V_out$plots$Mg + theme(axis.title.x = element_blank())
+sma01ve <- SMA001V_out$plots$Mn
 
 recta <- ggplot2::annotate("rect", xmin = 6100, xmax = 10800, 
                           ymin = 1650, ymax = 2750,
@@ -113,51 +119,49 @@ ggsave(
 
 # bleach ----
 ## tooth----
-SMA001TB <- transsplit[[54]]
-get_spikes(SMA001TB_filt)
+SMA001TB <- transsplit[[54]]  %>% 
+  filter(true_dist >= 164, 
+         true_dist <= 55369)
 
-SMA001TB <- SMA001TB %>% 
-  filter(true_dist >= 220, 
-         true_dist <= 54819,
-         In_Ca < 20)
+b1 <- plot_holes(SMA001TB, trigger =  3, release = 1.5,
+                 elements = c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"))
+SMA001TB <- b1$data[!b1$data$.hole, ]
 
-# overshoot at tip unknown (can't see)
-# overshoot at the end measured as 1050 um
+get_spikes(SMA001TB)
 
-SMA001TB_plot <- profs(SMA001TB_filt, el_all, "tooth", # alt_denom = "Ba",
-                       span = 0.01, window_size = 11, 
-                       show_In = TRUE, In_style = "rect")
+SMA001TB_out <- profs(SMA001TB, el_all, "tooth", 
+                       # alt_denom = "Ba",
+                       span = 0.05, window_size = 11, 
+                       show_In = FALSE)
 
-sma01a2 <- a + theme(axis.title.x = element_blank())
-sma01b2 <- b + theme(axis.title.x = element_blank())
-sma01c2 <- cc + theme(axis.title.x = element_blank())
-sma01d2 <- d + theme(axis.title.x = element_blank())
-sma01e2 <- e + theme(axis.title.x = element_blank())
-sma01f2 <- f + theme(axis.title.x = element_blank())
+SMA001TB_out$plots$Ca
+
+sma01a2 <- SMA001TB_out$plots$Sr + theme(axis.title.x = element_blank())
+sma01b2 <- SMA001TB_out$plots$Ba + theme(axis.title.x = element_blank())
+sma01c2 <- SMA001TB_out$plots$Li + theme(axis.title.x = element_blank())
+sma01d2 <- SMA001TB_out$plots$Mg + theme(axis.title.x = element_blank())
+sma01e2 <- SMA001TB_out$plots$Mn 
+
+SMA001TB_out$plots$Ca
 
 ## vert----
-SMA001VB <- transsplit[[56]]
+SMA001VB <- transsplit[[56]] %>% 
+  filter(true_dist> 745, true_dist <= 9968.2)
 
 get_spikes(id = SMA001VB) %>% 
   # filter(max_In_Ca >= 2) %>% 
   round(digits = 2)
 
-# overshoot at the end measured as 220 um
-
-SMA001VB <- SMA001VB %>% 
-  filter(true_dist >= 600,
-         true_dist <= 9843.7)
-
-SMA001VB_plot <- profs(SMA001VB, el_all, "vert", alt_denom = "Ba",
+SMA001VB_out <- profs(SMA001VB, el_all, "vert", # alt_denom = "Ba",
                        span = 0.025, window_size = 31, 
                        show_In = TRUE, In_style = "points") # wow that is cool
+SMA001VB_out$plots$Ca
 
-sma01va2 <- a + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vb2 <- b + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vc2 <- cc + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01vd2 <- d + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-sma01ve2 <- e 
-sma01vf2 <- f
+sma01va2 <- SMA001VB_out$plots$Sr + theme(axis.title.x = element_blank())
+sma01vb2 <- SMA001VB_out$plots$Ba + theme(axis.title.x = element_blank())
+sma01vc2 <- SMA001VB_out$plots$Li + theme(axis.title.x = element_blank())
+sma01vd2 <- SMA001VB_out$plots$Mg + theme(axis.title.x = element_blank())
+sma01ve2 <- SMA001VB_out$plots$Mn
 
 recta <- ggplot2::annotate("rect", xmin = 6100, xmax = 10000, 
                            ymin = 1650, ymax = 2650,

@@ -16,7 +16,7 @@ library(dtw) # fxn 1-3
 library(dtwclust) # fxn 4
 
 # compare vert & tooth, free element behaviour
-align_els <- function(datT, datV, elements, n = 1000,
+align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis but a fxn now
                       pattern = asymmetric, spanT = 0.02, spanV = 0.01) {
   
   datT <- datT[order(datT$true_dist), ]
@@ -88,8 +88,8 @@ align_els <- function(datT, datV, elements, n = 1000,
     print(p)
     
     tryCatch({
-      plot(alignment, type = "two", off = 1, main = element)
-      plot(alignment, type = "threeway", off = 1, main = element)
+      plot(alignment, type = "two", offset = 1, main = element)
+      plot(alignment, type = "threeway", main = element)
     }, error = function(err) {
       cat("Skipping", element, "plots - error:", conditionMessage(err), "\n")
     })
@@ -154,7 +154,7 @@ align_grid <- function(datA, datB,
   grid
 }
 
-# helper to summarise the output
+# helper to summarise the above output (bc I got tired of trying to visualise with ggplot)
 select_spans <- function(grid, n_fixed, r2_threshold = 0.9, max_iter = 5){
   
   # filter out any groupings that result in poor correlation (r2, norm_dist)
@@ -199,12 +199,12 @@ select_spans <- function(grid, n_fixed, r2_threshold = 0.9, max_iter = 5){
   )
 }
 
-# (option to apply spans IDd from fxn above)
+# (option to apply spans ID'd from fxn above)
 # lock all elements in when identifying matching region
 align_multi <- function(datT, datV, elements, n = 1000,
-         spanT = 0.05, spanV = 0.15,
+         spanT = 0.15, spanV = 0.05, # around 3x the size
          open_begin = TRUE, open_end = TRUE,
-         lockV_start = NULL){   
+         lockV_start = NULL, pattern = asymmetric){   
   
   datT <- datT[order(datT$true_dist), ]
   datV <- datV[order(datV$true_dist), ]
@@ -234,7 +234,7 @@ align_multi <- function(datT, datV, elements, n = 1000,
   matV <- apply(matV, 2, function(x) (x - mean(x)) / sd(x))
   
   alignment <- dtw(matT, matV, keep = TRUE,
-                   step = asymmetricP0,
+                   step = pattern,
                    open.end = open_end,
                    open.begin = open_begin)
   
@@ -248,7 +248,7 @@ align_multi <- function(datT, datV, elements, n = 1000,
   
   cat("Tooth:", tooth_start, "to", tooth_end, "\n",
       "Vert: ", vert_start, "to", vert_end, "\n",
-      "Normalized distance:", alignment$normalizedDistance, "\n")
+      "Normalized distance:", alignment$normalizedDistance/sqrt(length(elements)), "\n")
   
   par(mfrow = c(ceiling(length(elements)/2), 2))
   for(element in elements) {
