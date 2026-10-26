@@ -1,0 +1,188 @@
+---
+title: "06b · DTW run"
+author: "Nikki Biskis"
+date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
+output:
+  github_document:
+    toc: true
+    html_preview: false
+---
+
+- **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
+- **DOI:** tbd
+- **Written:** 28 Aug 2026
+- **Content:** dynamic time warping II
+
+- application of functions developed previously
+- setting the models built with parameters developed in dtw1
+
+R markdown version of `06b_dtw_run.R`. It starts from the objects 06a saved
+(`data/output/dtw_cache/06a.RData`), and saves its own objects to
+`data/output/dtw_cache/06b.RData` for 06f.
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
+knitr::opts_chunk$set(fig.width = 10, fig.height = 6, dpi = 120,
+                      message = FALSE, warning = FALSE, comment = "#>")
+```
+
+```{r load}
+source('helpers/functions/fxn_dtw.R')
+source('helpers/functions/fxn_profile.R')
+source('helpers/functions/fxn_mavs.R')
+source('helpers/microHelp.R')
+load('data/output/dtw_cache/06a.RData') # objects from 06a
+```
+
+## SMA001
+
+```{r sma001-els}
+align_els(SMA001T_filt %>% filter(true_dist <= 43000),
+          SMA001V_filt, # Ba gets confused
+          elements = names(span_vec),
+          spanT = 0.08, spanV = 0.02, n = 2000)
+
+align_els(SMA001TB_filt %>% filter(true_dist <= 46000),
+          SMA001VB_filt,
+          elements = names(span_vec),
+          spanT = 0.08, spanV = 0.02, n = 2000)
+
+# similar...
+```
+
+### Multi: bleach
+
+```{r sma001-multi-bleach}
+mult1b2 <- align_multi(SMA001TB_filt %>% filter(true_dist <= 46000),
+                       SMA001VB_filt,
+                     elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
+                     spanT = 0.08, spanV = 0.02,
+                     n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1b2.1 <- align_multi(SMA001TB_filt %>% filter(true_dist <= 46000),
+                       SMA001VB_filt,
+                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1b3 <- align_multi(SMA001TB_filt %>% filter(true_dist <= 46000),
+                         SMA001VB_filt,
+                         elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Mn_Ca_mav"),
+                         spanT = 0.08, spanV = 0.02,
+                         n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1b4 <- align_multi(SMA001TB_filt %>% filter(true_dist <= 46000),
+                       SMA001VB_filt,
+                       elements = mavs1,
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1b6 <- align_multi(SMA001TB_filt %>% filter(true_dist <= 46000),
+                       SMA001VB_filt,
+                       elements = mavs2,
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+
+# ahhh that's interesting!
+```
+
+### Multi: water
+
+```{r sma001-multi-water}
+mult1h2 <- align_multi(SMA001T_filt, SMA001V_filt,
+                      elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
+                      spanT = 0.08, spanV = 0.02,
+                      n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                      open_end = TRUE) # same result for both verts
+
+mult1h2.1 <- align_multi(SMA001T_filt, SMA001V_filt,
+                         elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
+                         spanT = 0.08, spanV = 0.02,
+                         n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1h3 <- align_multi(SMA001T_filt, SMA001V_filt,
+                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Mn_Ca_mav"),
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+
+mult1h4 <- align_multi(SMA001T_filt, SMA001V_filt,
+                      elements = mavs1,
+                      # spanT = 0.025, spanV = 0.005,
+                      spanT = 0.08, spanV = 0.02,
+                      n = 6000, open_begin = TRUE,
+                      open_end = TRUE) # but this one suggests longer
+
+mult1h6 <- align_multi(SMA001T_filt, SMA001V_filt,
+                      elements = mavs2,
+                      # spanT = 0.025, spanV = 0.005,
+                      spanT = 0.08, spanV = 0.02,
+                      n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                      open_end = TRUE)
+```
+
+## SMA002
+
+`SMA002TH_out` is made in `05c_fig_sma002.R`, not in 06a, so it's rebuilt
+here the same way 05c does it.
+
+```{r sma002-profile}
+# rebuilt as in 05c_fig_sma002.R (water tooth, In holes removed)
+SMA002TH <- subset(flag_holes(transsplit[[59]], trigger = 3, release = 1.5), !.hole)
+SMA002TH_out <- profs(SMA002TH, el_all, "tooth", span = 0.01, window_size = 11,
+                      show_In = TRUE, In_style = "points")
+
+SMA002TH_out$plots$Ca #(never gets to the base, tooth incomplete)
+```
+
+```{r sma002-els}
+align_els(SMA002T_filt, SMA002V_filt, elements = mavs2,
+          spanT = 0.08, spanV = 0.02, n = 4000)
+```
+
+### Multi
+
+```{r sma002-multi}
+mult2 <- align_multi(SMA002T_filt, SMA002V_filt,
+                       elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                       open_end = TRUE) #hmm!
+# oh! it's calling it right before (note tooth incomplete)
+
+mult2.1 <- align_multi(SMA002T_filt, SMA002V_filt,
+                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                       open_end = TRUE)
+
+mult3 <- align_multi(SMA002T_filt, SMA002V_filt,
+                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', 'Mn_Ca_mav'),
+                       spanT = 0.08, spanV = 0.02,
+                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                       open_end = TRUE)
+
+mult4 <- align_multi(SMA002T_filt, SMA002V_filt,
+            elements =  mavs1,
+            spanT = 0.08, spanV = 0.02,
+            n = 6000,  open_begin = TRUE,
+            open_end = TRUE)
+
+mult6 <- align_multi(SMA002T_filt, SMA002V_filt,
+                       elements =  mavs2,
+                       spanT = 0.04, spanV = 0.01,
+                       n = 6000,  open_begin = TRUE,
+                       # open_begin = FALSE, lockV_start = 3800,
+                       open_end = TRUE)
+
+# oh woah these all look like they match - not long though and they are def scrunched.
+```
+
+## Save for 06f
+
+Only what 06f uses is saved: each `mult*` alignment carries two n × n cost
+matrices (`keep = TRUE`), so saving all of them comes to ~8 GB.
+
+```{r save}
+save(mult1h6, SMA001T_filt, SMA001V_filt, mavs2,
+     file = 'data/output/dtw_cache/06b.RData')
+```
