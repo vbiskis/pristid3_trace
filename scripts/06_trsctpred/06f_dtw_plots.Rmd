@@ -1,5 +1,5 @@
 ---
-title: "06f · DTW plots"
+title: "06f · DTW warping and misfit"
 author: "Nikki Biskis"
 date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
 output:
@@ -10,94 +10,141 @@ output:
 
 - **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
 - **DOI:** tbd
-- **Written:** 30 Aug 2026
-- **Content:** dynamic time warping IV: output plots
+- **Written:** 30 Aug 2026 (warping and misfit Oct 2026)
+- **Content:** dynamic time warping VI: how the warping and the misfit vary along the vertebra, and what goes with poor alignment
 
-R markdown version of `06f_dtw_plots.R`. It starts from the objects 06b saved (`data/output/dtw_cache/06b.RData`).
+Starts from 06a, 06c, 06d and 06e (`data/output/dtw_cache/`); uses 06d's build-out
+windows. The earlier version is in `original/06f_dtw_plots.R`. For each window:
+
+- **Growth ratio**: µm of tooth matched per µm of vertebra (`ratio`).
+- **Warp** of each element: how far its path through the window departs from an even
+  pace, as % of the window (0 = no warping).
+- **Misfit** of each element: its DTW fit in the window (normalised distance; higher =
+  poorer match), and how far apart the elements place the tooth piece (`disagree_pct`).
+- **Possible causes**: how much the vertebra window varies (`signal`; flat stretches are
+  hard to place), the share of the matched tooth piece inside holes, median In:Ca in
+  the tooth piece and in the vertebra window (contamination), and the distance from
+  the window to the nearest vertebral band.
 
 ```{r setup, include = FALSE}
 knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
-knitr::opts_chunk$set(fig.width = 10, fig.height = 6, dpi = 120,
+knitr::opts_chunk$set(fig.width = 10, fig.height = 8, dpi = 120,
                       message = FALSE, warning = FALSE, comment = "#>")
 ```
 
 ```{r load}
-source('helpers/functions/fxn_dtw.R')
-source('helpers/functions/fxn_mavs.R')
 source('helpers/microHelp.R')
-load('data/output/dtw_cache/06b.RData') # objects from 06b (mult1h6, SMA001T_filt, SMA001V_filt, mavs2)
+source('helpers/functions/fxn_mavs.R')
+source('helpers/functions/fxn_dtw.R')    # also find_gaps(), in_gaps()
+load('data/output/dtw_cache/06a.RData')  # objects from 06a
+load('data/output/dtw_cache/06c.RData')  # sets, gap_um from 06c
+load('data/output/dtw_cache/06d.RData')  # up_settings from 06d
+load('data/output/dtw_cache/06e.RData')  # built (matched build-out windows) from 06e
 ```
 
-<details>
-<summary>Show the function</summary>
+```{r causes}
+# candidate causes of misfit, per window
+built <- do.call(rbind, lapply(split(built, built$set), function(b){
+  set   <- sets[[b$set[1]]]
+  holes <- find_gaps(set$tooth$true_dist, gap_um)
+  b$hole_pct <- sapply(seq_len(nrow(b)), function(i){
+    x <- seq(b$tooth_start[i], b$tooth_end[i], length.out = 200)
+    100 * mean(in_gaps(x, holes))
+  })
+  b$In_tooth <- sapply(seq_len(nrow(b)), function(i)
+    median(set$tooth$In_Ca[set$tooth$true_dist >= b$tooth_start[i] & set$tooth$true_dist <= b$tooth_end[i]]))
+  b$In_vert <- sapply(seq_len(nrow(b)), function(i)
+    median(set$vert$In_Ca[set$vert$true_dist >= b$v_from[i] & set$vert$true_dist <= b$v_to[i]]))
+  b$band_dist <- sapply(b$v_mid, function(v) min(abs(v - set$bands)))
+  b
+}))
 
-```{r plot-overlap-fn}
-plot_overlap <- function(alignment, datT, datV, elements, spanT, spanV, n = 2000){
-  
-  datT <- datT[order(datT$true_dist), ]
-  datV <- datV[order(datV$true_dist), ]
-  
-  if(length(spanT) == 1) spanT <- setNames(rep(spanT, length(elements)), elements)
-  if(length(spanV) == 1) spanV <- setNames(rep(spanV, length(elements)), elements)
-  
-  for(element in elements) {
-    smooth_col <- paste0(element, "_smooth")
-    datT[[smooth_col]] <- predict(loess(datT[[element]] ~ datT$true_dist, span = spanT[[element]]))
-    datV[[smooth_col]] <- predict(loess(datV[[element]] ~ datV$true_dist, span = spanV[[element]]))
-  }
-  
-  tooth_idx <- round(seq(1, nrow(datT), length.out = n))
-  vert_idx  <- round(seq(1, nrow(datV), length.out = n))
-  
-  vert_start <- datV$true_dist[vert_idx[alignment$index2[1]]]
-  vert_end   <- datV$true_dist[vert_idx[alignment$index2[length(alignment$index2)]]]
-  
-  plots <- list()
-  for(element in elements){
-    smooth_col <- paste0(element, "_smooth")
-    
-    df_vert <- data.frame(distance = datV$true_dist, value = datV[[smooth_col]])
-    df_tooth <- data.frame(
-      distance = datV$true_dist[vert_idx[alignment$index2]],
-      value = datT[[smooth_col]][tooth_idx[alignment$index1]]
-    )
-    
-    vert_region <- df_vert[df_vert$distance >= vert_start & df_vert$distance <= vert_end, ]
-    y_scale <- diff(range(vert_region$value, na.rm = TRUE)) / diff(range(df_tooth$value, na.rm = TRUE))
-    y_offset <- min(vert_region$value, na.rm = TRUE) - min(df_tooth$value, na.rm = TRUE) * y_scale
-    df_tooth$value <- df_tooth$value * y_scale + y_offset
-    
-    cat(element, "y_scale:", y_scale, "y_offset:", y_offset,
-        "| vert_region range:", range(vert_region$value, na.rm = TRUE),
-        "| df_tooth range (post-scale):", range(df_tooth$value, na.rm = TRUE), "\n")
-    
-    plots[[element]] <- ggplot() +
-      ggplot2::annotate("rect", xmin = vert_start, xmax = vert_end, ymin = -Inf, ymax = Inf,
-               fill = "steelblue", alpha = 0.08) +
-      geom_vline(xintercept = c(vert_start, vert_end), linetype = "dashed", color = "grey40") +
-      geom_line(data = df_vert, aes(distance, value), color = "darkgrey") +
-      geom_line(data = df_tooth, aes(distance, value), color = "brown") +
-      theme_bw() +
-      labs(x = "Distance along vert (um)", y = element, title = element)
-  }
-  
-  wrap_plots(plots, ncol = 2) +
-    plot_annotation(
-      title = sprintf("Tooth overlap region: %.0f to %.0f um (span: %.0f um)",
-                      vert_start, vert_end, vert_end - vert_start)
-    )
-}
+els  <- sub("_Ca.*$", "", up_settings$elements)
+long <- do.call(rbind, lapply(up_settings$elements, function(el)
+  data.frame(set = built$set, v_mid = built$v_mid, element = sub("_Ca.*$", "", el),
+             cost = built[[paste0("cost_", el)]], warp = built[[paste0("warp_", el)]])))
+bands <- do.call(rbind, lapply(names(sets), function(n) data.frame(set = n, band = sets[[n]]$bands)))
 ```
 
-</details>
+## Growth ratio along the vertebra
 
-## SMA001 water: all six elements (`mult1h6` from 06b)
-
-```{r overlap, fig.height = 10}
-plot_overlap(mult1h6, SMA001T_filt, SMA001V_filt, 
-             mavs2, spanT = 0.04, spanV = 0.01, n = 6000)
+```{r ratio, fig.height = 7}
+R_all <- do.call(rbind, lapply(split(built, built$set), function(b)
+  data.frame(set = b$set[1], R = coef(lm(t_mid ~ v_mid, data = b))[2])))
+ggplot(built, aes(v_mid, ratio)) +
+  geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
+  geom_hline(data = R_all, aes(yintercept = R), linetype = "dashed") +
+  geom_line(colour = "grey50") + geom_point(aes(colour = disagree_pct)) +
+  scale_colour_viridis_c(name = "Elements\ndisagree (%)") +
+  facet_wrap(~ set, ncol = 1, scales = "free_x") +
+  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = "Vertebra (um)", y = "Growth ratio (um tooth per um vertebra)",
+       caption = paste("Growth ratio chosen by each build-out window. Dashed = the build-out's overall growth ratio",
+                       "\n(slope of matched tooth on vertebra position). Brown lines = vertebral bands."))
 ```
 
-```{r twoway}
-plot(mult1h6, type = "twoway", offset = 1)
+## Misfit and warp of each element
+
+```{r misfit, fig.height = 9}
+ggplot(long, aes(v_mid, cost, colour = element)) +
+  geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
+  geom_line() +
+  facet_wrap(~ set, ncol = 1, scales = "free") +
+  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = "Vertebra (um)", y = "Misfit (DTW normalised distance)", colour = NULL,
+       caption = paste("Each element's fit between the vertebra window and its matched tooth piece; higher = poorer match.",
+                       "\nBrown lines = vertebral bands."))
+```
+
+```{r warp, fig.height = 9}
+ggplot(long, aes(v_mid, warp, colour = element)) +
+  geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
+  geom_line() +
+  facet_wrap(~ set, ncol = 1, scales = "free") +
+  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = "Vertebra (um)", y = "Warp (% of the window)", colour = NULL,
+       caption = paste("How far each element's path through the window departs from an even pace (straight diagonal),",
+                       "\nas % of the window; 0 = no warping. Brown lines = vertebral bands."))
+```
+
+## What goes with poor alignment?
+
+Spearman correlation of each window's misfit (median over the elements) and of how
+far apart the elements place the tooth piece, with each possible cause.
+
+```{r causes-table}
+built$misfit <- apply(built[paste0("cost_", up_settings$elements)], 1, median)
+causes <- c(signal = "Vertebra signal", hole_pct = "Holes in tooth piece (%)", In_tooth = "In:Ca, tooth piece",
+            In_vert = "In:Ca, vertebra window", band_dist = "Distance to nearest band (um)")
+cause_tab <- do.call(rbind, lapply(split(built, built$set), function(b) do.call(rbind, lapply(names(causes), function(cz){
+  ct <- function(y) suppressWarnings(cor.test(b[[cz]], b[[y]], method = "spearman"))
+  m <- ct("misfit"); d <- ct("disagree_pct")
+  data.frame(set = b$set[1], cause = causes[[cz]],
+             rho_misfit = round(m$estimate, 2), p_misfit = signif(m$p.value, 2),
+             rho_disagree = round(d$estimate, 2), p_disagree = signif(d$p.value, 2))
+}))))
+rownames(cause_tab) <- NULL
+knitr::kable(cause_tab)
+```
+
+- **rho_misfit, p_misfit**: Spearman correlation (and p-value) between the cause and the window's misfit (median over elements).
+- **rho_disagree, p_disagree**: the same with how far apart the elements place the tooth piece.
+- Reading it: a positive rho with **In:Ca** points to contamination; with **holes**, to missing tooth data; a negative rho with **vertebra signal** means flat stretches are hard to place; a negative rho with **distance to nearest band** means poorer matches close to bands (slow growth compresses the vertebra there). NA = the cause doesn't vary in that set (e.g. no holes).
+
+```{r causes-plot, fig.height = 9}
+cl <- do.call(rbind, lapply(names(causes), function(cz)
+  data.frame(set = built$set, cause = causes[[cz]], value = built[[cz]], misfit = built$misfit)))
+ggplot(cl, aes(value, misfit, colour = set)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.6) +
+  facet_wrap(~ cause, scales = "free_x", ncol = 2) +
+  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = NULL, y = "Misfit (median over elements)", colour = NULL,
+       caption = "Each point is one build-out window; lines = linear trend per set.")
+```
+
+```{r save}
+dir.create('data/output/dtw_final', showWarnings = FALSE)
+write.csv(cause_tab, 'data/output/dtw_final/misfit_causes.csv', row.names = FALSE)
+write.csv(built, 'data/output/dtw_final/buildout_windows.csv', row.names = FALSE)
 ```

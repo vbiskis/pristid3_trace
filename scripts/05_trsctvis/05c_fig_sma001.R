@@ -33,6 +33,11 @@ SMA001T <- h1$data[!h1$data$.hole, ]
 get_spikes(id = SMA001T) %>% 
   round(digits = 2)
 
+## holes and smoothing----
+# red = one loess across everything (how it was); blue = each piece on its own (now)
+find_gaps(SMA001T$true_dist) # holes > 50 um (normal spacing ~8.6 um)
+plot_smoothing(SMA001T, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.05)
+
 # remind myself... what is a window size of 21 (10 pts each side) in um:
 samp_intt <- mean(diff(sort(SMA001T$true_dist)), na.rm = TRUE)
 samp_intt*5 # ws(21) = 43 um
@@ -128,6 +133,11 @@ b1 <- plot_holes(SMA001TB, trigger =  3, release = 1.5,
 SMA001TB <- b1$data[!b1$data$.hole, ]
 
 get_spikes(SMA001TB)
+
+## holes and smoothing----
+# red = one loess across everything (how it was); blue = each piece on its own (now)
+find_gaps(SMA001TB$true_dist) # holes > 50 um (normal spacing ~8.6 um)
+plot_smoothing(SMA001TB, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.05)
 
 SMA001TB_out <- profs(SMA001TB, el_all, "tooth", 
                        # alt_denom = "Ba",

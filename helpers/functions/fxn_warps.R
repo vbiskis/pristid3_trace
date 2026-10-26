@@ -21,9 +21,10 @@
 library(dtw)
 library(ggplot2)
 library(patchwork)
+source('helpers/functions/fxn_gaps.R') # smoothing that stops at holes
 
 # shared prep: sort, crop, smooth vert, and a tooth smoother that matches the vert
-prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10){
+prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10, gap_um = 50){
   datT <- datT[order(datT$true_dist), ]
   datT <- datT[datT$true_dist <= tooth_max, ]
   datV <- datV[order(datV$true_dist), ]
@@ -33,7 +34,7 @@ prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10){
   LT <- diff(range(xT)); LV <- diff(range(xV))
   span_min <- min_pts / nrow(datT)    # loess needs enough points in each window
   
-  zV <- scale(sapply(elements, function(el) predict(loess(datV[[el]] ~ xV, span = spanV[[el]]))))
+  zV <- scale(sapply(elements, function(el) smooth_gaps(xV, datV[[el]], spanV[[el]], Inf))) # verts: never split
   colnames(zV) <- elements
   
   cache <- list()
@@ -42,14 +43,15 @@ prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10){
     key <- format(r)
     if(!is.null(cache[[key]])) return(cache[[key]])
     sp <- setNames(pmin(1, pmax(span_min, spanV * r * LV / LT)), elements)  # pmin/pmax drop name
-    z  <- scale(sapply(elements, function(el) predict(loess(datT[[el]] ~ xT, span = sp[[el]]))))
+    z  <- scale(sapply(elements, function(el) smooth_gaps(xT, datT[[el]], sp[[el]], gap_um)))
     colnames(z) <- elements
     out <- list(z = z, spanT = sp, clamped = any(spanV * r * LV / LT < span_min))
     cache[[key]] <<- out
     out
   }
   
-  list(xT = xT, xV = xV, zV = zV, tooth_at_ratio = tooth_at_ratio, spanV = spanV)
+  list(xT = xT, xV = xV, zV = zV, tooth_at_ratio = tooth_at_ratio, spanV = spanV,
+       gaps = find_gaps(xT, gap_um))
 }
 
 at_pts <- function(z, x, xout, elements){
@@ -67,6 +69,7 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
                          window_frac  = 0.3,          # how freely each element may warp
                          keep_best    = 0.1,          # share of best-fitting candidates kept
                          tooth_max    = Inf,
+                         gap_um       = 50,           # holes wider than this (um) in the tooth are skipped
                          plot         = FALSE,
                          zoom         = Inf,            # plot: windows of life shown either side (Inf = whole vert)
                          offset       = 3,
@@ -76,7 +79,7 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
                          band_alpha   = 0.3,
                          show_paths   = TRUE){        # FALSE = two-way plot only
   
-  if(is.null(prep)) prep <- prep_records(datT, datV, elements, spanV, tooth_max)
+  if(is.null(prep)) prep <- prep_records(datT, datV, elements, spanV, tooth_max, gap_um = gap_um)
   xT <- prep$xT; xV <- prep$xV; zV <- prep$zV
   
   v_to <- v_from + win
@@ -101,6 +104,15 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
   align1 <- function(q, r) dtw(q, r, step.pattern = symmetric2,
                                window.type = "sakoechiba", window.size = w)
   
+  # tooth piece at n_pts even positions, minus any that fall in a hole;
+  # NULL if more of it is missing than the warping window can absorb
+  tooth_piece <- function(zT, s, tlen){
+    pos  <- seq(s, s + tlen, length.out = n_pts)
+    keep <- which(!in_gaps(pos, prep$gaps))
+    if(n_pts - length(keep) > w) return(NULL)
+    list(pos = pos[keep], keep = keep, z = at_pts(zT, xT, pos[keep], elements))
+  }
+  
   lo <- max(min(xT), tooth_search[1])
   hi <- min(max(xT), tooth_search[2])
   ratios <- seq(ratio_range[1], ratio_range[2], length.out = n_ratios)
@@ -111,12 +123,15 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
     if(tlen > hi - lo) next
     zT <- prep$tooth_at_ratio(r)$z
     for(s in seq(lo, hi - tlen, by = start_step)){
-      Tw   <- at_pts(zT, xT, seq(s, s + tlen, length.out = n_pts), elements)
+      tp   <- tooth_piece(zT, s, tlen)
+      if(is.null(tp)) next
+      Tw   <- tp$z
       idx  <- matrix(NA_real_, n_pts, length(elements))
       cost <- setNames(numeric(length(elements)), paste0("cost_", elements))
       for(e in seq_along(elements)){
         a <- align1(Vw[, e, drop = FALSE], Tw[, e, drop = FALSE])
-        idx[, e] <- tapply(a$index2, a$index1, mean)   # tooth point for each vert point
+        idx[, e] <- approx(seq_along(tp$keep), tp$keep,   # tooth point for each vert point,
+                           tapply(a$index2, a$index1, mean))$y  # numbered as if no hole
         cost[e]  <- a$normalizedDistance
       }
       # disagreement: at each vert point, gap between the elements whose matched
@@ -161,8 +176,9 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
   
   # two-way: whole vert along the bottom, tooth piece above, grey lines = warp
   if(plot){
-    gt <- seq(b$tooth_start, b$tooth_end, length.out = n_pts)
-    Tw <- at_pts(tr$z, xT, gt, elements)
+    tp <- tooth_piece(tr$z, b$tooth_start, b$tooth_end - b$tooth_start)
+    gt <- tp$pos
+    Tw <- tp$z
     tx <- v_from + (gt - b$tooth_start) / (b$tooth_end - b$tooth_start) * win
     
     vert_df <- do.call(rbind, lapply(elements, function(el)

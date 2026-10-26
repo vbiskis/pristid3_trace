@@ -53,6 +53,14 @@ h2 <- plot_holes(SMA002TH, trigger =  3, release = 1.5,
 
 SMA002TH <- h2$data[!h2$data$.hole, ] # lol! k
 
+## holes and smoothing----
+# red = one loess across everything (how it was); blue = each piece on its own (now)
+find_gaps(SMA002TH$true_dist) # holes > 50 um (normal spacing ~8.6 um)
+plot_smoothing(SMA002TH, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.05)
+plot_smoothing(SMA002TH, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.05, xlim = c(13000, 25000)) # the big hole
+# data right at the hole edges still spike: trim_gaps() drops points within buffer um of a hole
+plot_smoothing(trim_gaps(SMA002TH, buffer = 400), c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.05, xlim = c(13000, 25000))
+
 SMA002TH_out <- profs(SMA002TH, el_all, "tooth", span = 0.01, window_size = 11,
                       # img_path = "data/transects/imgs/SMA002/SMA002-Trsct.jpg", # still big
                       show_In = TRUE, In_style = "points", ) 

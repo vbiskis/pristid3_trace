@@ -1,110 +1,107 @@
-06f · DTW plots
+06f · DTW final figures
 ================
 Nikki Biskis
-Rendered 24 Oct 2026 19:16
+Rendered 26 Oct 2026 20:43
 
-- [SMA001 water: all six elements (`mult1h6` from
-  06b)](#sma001-water-all-six-elements-mult1h6-from-06b)
+- [The four matches](#the-four-matches)
+- [Forced alignments](#forced-alignments)
+  - [SMA001 (water)](#sma001-water)
+  - [SMA001 (bleach)](#sma001-bleach)
+  - [SMA002 (water)](#sma002-water)
 
 - **Paper:** The potential of elemental analysis in determining origin
   of sawfish rostra
 - **DOI:** tbd
-- **Written:** 30 Aug 2026
-- **Content:** dynamic time warping IV: output plots
+- **Written:** 30 Aug 2026 (final figures Oct 2026)
+- **Content:** dynamic time warping VI: figures for the four matches in
+  06e
 
-R markdown version of `06f_dtw_plots.R`. It starts from the objects 06b
-saved (`data/output/dtw_cache/06b.RData`).
+Starts from 06a, 06c, 06d and 06e (`data/output/dtw_cache/`). The
+earlier version is in `original/06f_dtw_plots.R`.
 
 ``` r
-source('helpers/functions/fxn_dtw.R')
-source('helpers/functions/fxn_mavs.R')
 source('helpers/microHelp.R')
-load('data/output/dtw_cache/06b.RData') # objects from 06b (mult1h6, SMA001T_filt, SMA001V_filt, mavs2)
+source('helpers/functions/fxn_mavs.R')
+source('helpers/functions/fxn_dtw.R')
+load('data/output/dtw_cache/06a.RData') # objects from 06a
+load('data/output/dtw_cache/06c.RData') # sets, gap_um, down, down_mix from 06c
+load('data/output/dtw_cache/06d.RData') # up_mix from 06d
+load('data/output/dtw_cache/06e.RData') # final_tab, force_align from 06e
 ```
 
-<details>
-<summary>
-Show the function
-</summary>
+## The four matches
 
 ``` r
-plot_overlap <- function(alignment, datT, datV, elements, spanT, spanV, n = 2000){
-  
-  datT <- datT[order(datT$true_dist), ]
-  datV <- datV[order(datV$true_dist), ]
-  
-  if(length(spanT) == 1) spanT <- setNames(rep(spanT, length(elements)), elements)
-  if(length(spanV) == 1) spanV <- setNames(rep(spanV, length(elements)), elements)
-  
-  for(element in elements) {
-    smooth_col <- paste0(element, "_smooth")
-    datT[[smooth_col]] <- predict(loess(datT[[element]] ~ datT$true_dist, span = spanT[[element]]))
-    datV[[smooth_col]] <- predict(loess(datV[[element]] ~ datV$true_dist, span = spanV[[element]]))
-  }
-  
-  tooth_idx <- round(seq(1, nrow(datT), length.out = n))
-  vert_idx  <- round(seq(1, nrow(datV), length.out = n))
-  
-  vert_start <- datV$true_dist[vert_idx[alignment$index2[1]]]
-  vert_end   <- datV$true_dist[vert_idx[alignment$index2[length(alignment$index2)]]]
-  
-  plots <- list()
-  for(element in elements){
-    smooth_col <- paste0(element, "_smooth")
-    
-    df_vert <- data.frame(distance = datV$true_dist, value = datV[[smooth_col]])
-    df_tooth <- data.frame(
-      distance = datV$true_dist[vert_idx[alignment$index2]],
-      value = datT[[smooth_col]][tooth_idx[alignment$index1]]
-    )
-    
-    vert_region <- df_vert[df_vert$distance >= vert_start & df_vert$distance <= vert_end, ]
-    y_scale <- diff(range(vert_region$value, na.rm = TRUE)) / diff(range(df_tooth$value, na.rm = TRUE))
-    y_offset <- min(vert_region$value, na.rm = TRUE) - min(df_tooth$value, na.rm = TRUE) * y_scale
-    df_tooth$value <- df_tooth$value * y_scale + y_offset
-    
-    cat(element, "y_scale:", y_scale, "y_offset:", y_offset,
-        "| vert_region range:", range(vert_region$value, na.rm = TRUE),
-        "| df_tooth range (post-scale):", range(df_tooth$value, na.rm = TRUE), "\n")
-    
-    plots[[element]] <- ggplot() +
-      ggplot2::annotate("rect", xmin = vert_start, xmax = vert_end, ymin = -Inf, ymax = Inf,
-               fill = "steelblue", alpha = 0.08) +
-      geom_vline(xintercept = c(vert_start, vert_end), linetype = "dashed", color = "grey40") +
-      geom_line(data = df_vert, aes(distance, value), color = "darkgrey") +
-      geom_line(data = df_tooth, aes(distance, value), color = "brown") +
-      theme_bw() +
-      labs(x = "Distance along vert (um)", y = element, title = element)
-  }
-  
-  wrap_plots(plots, ncol = 2) +
-    plot_annotation(
-      title = sprintf("Tooth overlap region: %.0f to %.0f um (span: %.0f um)",
-                      vert_start, vert_end, vert_end - vert_start)
-    )
-}
+p <- ggplot(final_tab[!is.na(final_tab$vert_from), ],
+            aes(x = vert_from, xend = vert_to, y = tooth_from, yend = tooth_to, colour = match)) +
+  geom_vline(data = do.call(rbind, lapply(names(sets), function(n) data.frame(set = n, band = sets[[n]]$bands))),
+             aes(xintercept = band), colour = "brown", linewidth = 0.3) +
+  geom_segment(linewidth = 1.2, position = position_dodge2(width = 300)) +
+  facet_wrap(~ set, ncol = 1, scales = "free") +
+  scale_colour_manual(values = c("Mg, warp down" = "#7570b3", "Mg, warp up" = "#e7298a",
+                                 "Forced, warp-down mix" = "#1b9e77", "Forced, warp-up mix" = "#d95f02")) +
+  theme_bw() +
+  theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = "Vertebra (um)", y = "Tooth (um)", colour = NULL,
+       caption = paste(strwrap(paste(
+         "Each line runs from where a match starts (tooth start, vertebra start) to where it ends, so its",
+         "slope is the growth ratio R (um of tooth per um of vertebra). Mg, warp down: where cutting the tooth",
+         "moves Mg's match the way it should (06c). Mg, warp up: Mg's longest run of vertebra windows where the",
+         "random-order and sequential matches agree (06d). Forced: align_multi() on the whole records with the",
+         "warp-down or warp-up mix of elements locked to one path. Brown lines = vertebral bands."), 115),
+         collapse = "\n"))
+dir.create('figures/dtw', showWarnings = FALSE)
+ggsave('figures/dtw/final_matches.png', p, width = 10, height = 8, dpi = 300)
+p
 ```
 
-</details>
+![](06f_dtw_plots_files/figure-gfm/compare-1.png)<!-- -->
 
-## SMA001 water: all six elements (`mult1h6` from 06b)
+## Forced alignments
+
+Each set aligned with `align_multi()` on the whole tooth and vertebra,
+first with the warp-down mix, then with the warp-up mix. In each figure,
+every panel is one element: the smoothed vertebra (black) with the
+smoothed tooth (red) laid along it by the shared path.
+
+### SMA001 (water)
 
 ``` r
-plot_overlap(mult1h6, SMA001T_filt, SMA001V_filt, 
-             mavs2, spanT = 0.04, spanV = 0.01, n = 6000)
+invisible(capture.output(force_align("SMA001W", down_mix$SMA001W)))
 ```
 
-    #> Sr_Ca_mav y_scale: 0.1413836 y_offset: 1613.699 | vert_region range: 1886.728 1952.906 | df_tooth range (post-scale): 1886.728 1952.906 
-    #> Ba_Ca_mav y_scale: 0.3044996 y_offset: 10.45039 | vert_region range: 11.49068 14.26743 | df_tooth range (post-scale): 11.49068 14.26743 
-    #> Li_Ca_mav y_scale: 0.09311985 y_offset: 16.75754 | vert_region range: 19.33602 23.39483 | df_tooth range (post-scale): 19.33602 23.39483 
-    #> Mg_Ca_mav y_scale: 0.05739403 y_offset: 16372.74 | vert_region range: 16921.93 18042.75 | df_tooth range (post-scale): 16921.93 18042.75 
-    #> Mn_Ca_mav y_scale: 0.7898019 y_offset: 55.98027 | vert_region range: 66.91383 136.236 | df_tooth range (post-scale): 66.91383 136.236 
-    #> Zn_Ca_mav y_scale: 0.06356265 y_offset: 122.6798 | vert_region range: 127.6683 182.8826 | df_tooth range (post-scale): 127.6683 182.8826
-
-![](06f_dtw_plots_files/figure-gfm/overlap-1.png)<!-- -->
+![](06f_dtw_plots_files/figure-gfm/sma001w-down-1.png)<!-- -->
 
 ``` r
-plot(mult1h6, type = "twoway", offset = 1)
+invisible(capture.output(force_align("SMA001W", up_mix$SMA001W)))
 ```
 
-![](06f_dtw_plots_files/figure-gfm/twoway-1.png)<!-- -->
+![](06f_dtw_plots_files/figure-gfm/sma001w-up-1.png)<!-- -->
+
+### SMA001 (bleach)
+
+``` r
+invisible(capture.output(force_align("SMA001B", down_mix$SMA001B)))
+```
+
+![](06f_dtw_plots_files/figure-gfm/sma001b-down-1.png)<!-- -->
+
+``` r
+invisible(capture.output(force_align("SMA001B", up_mix$SMA001B)))
+```
+
+![](06f_dtw_plots_files/figure-gfm/sma001b-up-1.png)<!-- -->
+
+### SMA002 (water)
+
+``` r
+invisible(capture.output(force_align("SMA002W", down_mix$SMA002W)))
+```
+
+![](06f_dtw_plots_files/figure-gfm/sma002w-down-1.png)<!-- -->
+
+``` r
+invisible(capture.output(force_align("SMA002W", up_mix$SMA002W)))
+```
+
+![](06f_dtw_plots_files/figure-gfm/sma002w-up-1.png)<!-- -->

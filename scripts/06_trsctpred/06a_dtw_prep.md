@@ -1,7 +1,7 @@
 06a · DTW prep
 ================
 Nikki Biskis
-Rendered 24 Oct 2026 19:14
+Rendered 26 Oct 2026 17:38
 
 - [Check other ratios](#check-other-ratios)
 - [Apply mavs](#apply-mavs)
@@ -16,7 +16,7 @@ Rendered 24 Oct 2026 19:14
 - [Mav column names](#mav-column-names)
 - [Structure comparison](#structure-comparison)
   - [Tooth 1](#tooth-1)
-  - [Vert](#vert)
+  - [Vert 1](#vert-1)
 - [Save for 06b–06e](#save-for-06b06e)
 
 - **Paper:** The potential of elemental analysis in determining origin
@@ -57,12 +57,12 @@ names(transsplit)
 ``` r
 plot_els <- c('Sr_Ca', 'Ba_Ca', 'Mg_Ca', 'Li_Ca')
 elsg <- els[!els %in% c("Cu_Ca", "Pb_Ca", 'Ni_Ca')]
-SMA001TB <- subset(flag_holes(transsplit[[54]], trigger = 5, release = 2.5), !.hole)
-SMA001T <- subset(flag_holes(transsplit[[55]], trigger = 3, release = 1.5), !.hole)
+SMA001TB <- subset(flag_holes(transsplit[[54]], trigger = 2.5, release = 1.25), !.hole)
+SMA001T <- subset(flag_holes(transsplit[[55]], trigger = 2.5, release = 1.25), !.hole)
 SMA001VB <- transsplit[[56]]
 SMA001V <- transsplit[[57]]
-SMA002TB <- subset(flag_holes(transsplit[[58]], trigger = 3, release = 1.5), !.hole)
-SMA002T <- subset(flag_holes(transsplit[[59]], trigger = 3, release = 1.5), !.hole)
+SMA002TB <- subset(flag_holes(transsplit[[58]], trigger = 2.5, release = 1.25), !.hole)
+SMA002T <- subset(flag_holes(transsplit[[59]], trigger = 2.5, release = 1.25), !.hole)
 SMA002V <- transsplit[[60]]
 ```
 
@@ -87,13 +87,13 @@ list2env(dfs, envir = .GlobalEnv)
 ``` r
 allmavs <- Reduce(union, list(elsg, plot_els_ba, plot_els_mg, 'In_Ca'))
 
-SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 11) # 43 um for all
-SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 11)
+SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 11, gap_um = 350) # 43 um for all
+SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
 SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 21)
 SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 21)
 
-SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 11)
-SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 11)
+SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 11, gap_um = 350)
+SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
 SMA002V <- add_mavs(SMA002V, ratio_columns = allmavs, window_size = 21)
 
 names(SMA001TB)
@@ -120,8 +120,7 @@ names(SMA001TB)
 
 ``` r
 SMA001T_filt <- SMA001T %>% filter(true_dist >= 650, true_dist <= 55583) %>% na.omit()
-make_plot(SMA001T_filt, 'Sr_Ca', color = "brown", # had to clip it 3000 extra due to contam
-          'Sr_Ca', span = 0.05, show_In = TRUE)
+make_plot(SMA001T_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.025, show_In = TRUE)
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma001t-1.png)<!-- -->
@@ -129,10 +128,9 @@ make_plot(SMA001T_filt, 'Sr_Ca', color = "brown", # had to clip it 3000 extra du
 ### SMA001 tooth (bleach)
 
 ``` r
-SMA001TB_filt <- SMA001TB %>% filter(true_dist >= 5000, # remove na (overcautious but to be safe)
+SMA001TB_filt <- SMA001TB %>% filter(true_dist >= 12000, # remove na (overcautious but to be safe)
                                      true_dist <= 55402) %>% na.omit()
-make_plot(SMA001TB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE)
+make_plot(SMA001TB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.025, show_In = TRUE)
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma001tb-1.png)<!-- -->
@@ -141,8 +139,7 @@ make_plot(SMA001TB_filt, 'Sr_Ca', color = "brown",
 
 ``` r
 SMA001V_filt <- SMA001V %>% filter(true_dist >= 710, true_dist <= 10659) %>% na.omit()
-make_plot(SMA001V_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA001V_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.0125, show_In = FALSE)
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma001v-1.png)<!-- -->
@@ -151,8 +148,7 @@ make_plot(SMA001V_filt, 'Sr_Ca', color = "brown",
 
 ``` r
 SMA001VB_filt <- SMA001VB %>% filter(true_dist >= 745, true_dist <= 9968) %>% na.omit() # from measurements
-make_plot(SMA001VB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA001VB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.0125, show_In = FALSE)
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma001vb-1.png)<!-- -->
@@ -161,8 +157,7 @@ make_plot(SMA001VB_filt, 'Sr_Ca', color = "brown",
 
 ``` r
 SMA002TB_filt <- SMA002TB %>% filter(true_dist <= 49907) %>% na.omit() # yuck - toss
-make_plot(SMA002TB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE, In_style = "points")
+make_plot(SMA002TB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.05, show_In = TRUE, In_style = "points")
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma002tb-1.png)<!-- -->
@@ -171,8 +166,7 @@ make_plot(SMA002TB_filt, 'Sr_Ca', color = "brown",
 
 ``` r
 SMA002T_filt <- SMA002T %>% na.omit() # he's great tho!
-make_plot(SMA002T_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE, In_style = "points")
+make_plot(SMA002T_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.025, show_In = TRUE, In_style = "points")
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma002t-1.png)<!-- -->
@@ -181,8 +175,7 @@ make_plot(SMA002T_filt, 'Sr_Ca', color = "brown",
 
 ``` r
 SMA002V_filt <- SMA002V %>% filter(true_dist >= 334, true_dist <= 7952) %>% na.omit() # from measurements
-make_plot(SMA002V_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA002V_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.025, show_In = FALSE)
 ```
 
 ![](06a_dtw_prep_files/figure-gfm/filt-sma002v-1.png)<!-- -->
@@ -233,23 +226,23 @@ tooth_comp <- align_grid(SMA001TB_filt, SMA001T_filt, mavs2, spans, ns)
 # quick function for summarising these
 result <- select_spans(tooth_comp, n_fixed = 2000, r2_threshold = 0.9) # yes!
 span_vec <- setNames(result$chosen$span, result$chosen$element) # for ca ratios
-
-# median looks to be 0.01
+span_vec
 ```
 
-#### Test it now
+    #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
+    #>    0.1000    0.0750    0.0075    0.0750    0.0100    0.0750
 
 ``` r
 diff(range(SMA001TB_filt$true_dist, na.rm = TRUE)) # for comparison
 ```
 
-    #> [1] 44601.99
+    #> [1] 40877.97
 
 ``` r
 result$consensus_end - result$consensus_start # better!
 ```
 
-    #> [1] 31840.07
+    #> [1] 30565.58
 
 ``` r
 align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
@@ -257,46 +250,46 @@ align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
 ```
 
     #> Ba_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  4873.215 to 46425.15 
-    #>  Normalized distance: 0.2507101
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  4553.517 to 39201.72 
+    #>  Normalized distance: 0.2482193
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-1.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-2.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-3.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-1.png)<!-- -->
 
     #> Li_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  1157.82 to 33594.06 
-    #>  Normalized distance: 0.1882462
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  1218.303 to 33956.97 
+    #>  Normalized distance: 0.1869058
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-4.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-5.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-6.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-2.png)<!-- -->
 
     #> Mg_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  15423.2 to 45163.62 
-    #>  Normalized distance: 0.2611469
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  12874.27 to 45172.26 
+    #>  Normalized distance: 0.2667136
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-7.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-8.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-9.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-3.png)<!-- -->
 
     #> Mn_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  10247.57 to 54901.41 
-    #>  Normalized distance: 0.2140595
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  12459.53 to 54305.22 
+    #>  Normalized distance: 0.2155115
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-10.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-11.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-12.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-4.png)<!-- -->
 
     #> Sr_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  13384.06 to 45189.54 
-    #>  Normalized distance: 0.2600666
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  14481.39 to 45172.26 
+    #>  Normalized distance: 0.2613299
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-13.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-14.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-15.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-5.png)<!-- -->
 
     #> Zn_Ca_mav 
-    #>  Tooth: 9530.43 to 54132.42 
-    #>  Vert:  14585.08 to 50304.69 
-    #>  Normalized distance: 0.1989351
+    #>  Tooth: 12001.59 to 52879.56 
+    #>  Vert:  11258.5 to 52568.49 
+    #>  Normalized distance: 0.2081169
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-16.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-17.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/tooth-test-18.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-test-6.png)<!-- -->
 
     #> $Ba_Ca_mav
     #> DTW alignment object
@@ -335,32 +328,39 @@ align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
     #>  Call:     open.end = TRUE, open.begin = TRUE)
 
 ``` r
-finalt <- align_multi(SMA001T_filt, SMA001TB_filt,
-                      elements = mavs1,
-                      open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.05, spanV = 0.05,
-                      n = 2000) # and this matches that number well too!
+# median looks to be 0.01
 ```
 
-    #> Tooth: 812.202 to 54901.41 
-    #>  Vert:  28116.03 to 46356.02 
-    #>  Normalized distance: 0.5830888
+interesting: Mg/Sr have a better res (~0.01) than the rest which show a
+general pattern (~0.1)
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-19.png)<!-- -->
+#### Test it now
+
+``` r
+finalt <- align_multi(SMA001T_filt, SMA001TB_filt, elements = mavs1,
+                      open_begin = TRUE, open_end = TRUE,
+                      spanT = 0.01, spanV = 0.01, n = 2000) # and this matches that number well too!
+```
+
+    #> Tooth: 820.842 to 54875.49 
+    #>  Vert:  28090.1 to 44489.68 
+    #>  Normalized distance: 0.5293579
+
+![](06a_dtw_prep_files/figure-gfm/tooth-grid-1.png)<!-- -->
 
 ``` r
 range(SMA001T_filt$true_dist)
 ```
 
-    #> [1]   812.202 54901.410
+    #> [1]   820.842 54875.490
 
 ``` r
 range(SMA001TB_filt$true_dist)
 ```
 
-    #> [1]  9530.43 54132.42
+    #> [1] 12001.59 52879.56
 
-### Vert
+### Vert 1
 
 But most importantly: our verts.
 
@@ -368,17 +368,21 @@ But most importantly: our verts.
 vert_comp <- align_grid(SMA001V_filt, SMA001VB_filt, mavs2, spans, ns)
 result <- select_spans(vert_comp, n_fixed = 2000, r2_threshold = 0.9) # awesome!
 span_vecv <- setNames(result$chosen$span, result$chosen$element) # oh wow
-
-# how much wigglier are we talking
-span_vecv/span_vec # was span_vec2 in the .R script, which isn't defined anywhere in 06a
+span_vecv 
 ```
 
     #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
-    #> 1.3333333 0.6666667 1.0000000 2.0000000 7.5000000 7.5000000
+    #>     0.100     0.050     0.010     0.100     0.075     0.075
 
 ``` r
-# that actually makes a lot of sense.
+# how much wigglier are we talking
+span_vecv/span_vec
+```
 
+    #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
+    #> 1.0000000 0.6666667 1.3333333 1.3333333 7.5000000 1.0000000
+
+``` r
 align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
           spanT = 0.001, spanV = 0.001, n = 2000)
 ```
@@ -388,42 +392,42 @@ align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
     #>  Vert:  1538.001 to 8781.577 
     #>  Normalized distance: 0.01706575
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-1.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-2.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-3.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-1.png)<!-- -->
 
     #> Li_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1218.304 to 10512.55 
     #>  Normalized distance: 0.1413239
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-4.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-5.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-6.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-2.png)<!-- -->
 
     #> Mg_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1483.278 to 10616.23 
     #>  Normalized distance: 0.06997789
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-7.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-8.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-9.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-3.png)<!-- -->
 
     #> Mn_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1831.776 to 9179.038 
     #>  Normalized distance: 0.1168543
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-10.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-11.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-12.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-4.png)<!-- -->
 
     #> Sr_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1523.6 to 10650.8 
     #>  Normalized distance: 0.02836459
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-13.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-14.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-15.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-5.png)<!-- -->
 
     #> Zn_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1820.255 to 10477.99 
     #>  Normalized distance: 0.2052073
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-16.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-17.png)<!-- -->![](06a_dtw_prep_files/figure-gfm/vert-grid-18.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-test-6.png)<!-- -->
 
     #> $Ba_Ca_mav
     #> DTW alignment object
@@ -463,7 +467,11 @@ align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
 
 ``` r
 # plots look EXCELLENT!
+```
 
+#### Test it now
+
+``` r
 finalv <- align_multi(SMA001VB_filt, SMA001V_filt,
                       elements = mavs1,
                       open_begin = TRUE, open_end = TRUE,
@@ -475,7 +483,7 @@ finalv <- align_multi(SMA001VB_filt, SMA001V_filt,
     #>  Vert:  1463.117 to 10621.99 
     #>  Normalized distance: 0.1426421
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-19.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-grid-1.png)<!-- -->
 
 ``` r
 # straight up... wow

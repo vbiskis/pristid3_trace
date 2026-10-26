@@ -1,0 +1,189 @@
+---
+title: "06c · DTW warp down"
+author: "Nikki Biskis"
+date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
+output:
+  github_document:
+    toc: true
+    html_preview: false
+---
+
+- **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
+- **DOI:** tbd
+- **Written:** 14 Aug 2026
+- **Content:** dynamic time warping IV
+
+R markdown version of `original/06d_dtw_warpdown.R`. It starts from the objects 06a saved (`data/output/dtw_cache/06a.RData`).
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
+knitr::opts_chunk$set(fig.width = 10, fig.height = 6, dpi = 120,
+                      message = FALSE, warning = FALSE, comment = "#>")
+```
+
+```{r load}
+source('helpers/microHelp.R')
+source('helpers/functions/fxn_mavs.R')
+source('helpers/functions/fxn_dtw.R')
+source('helpers/functions/fxn_stack.R')
+load('data/output/dtw_cache/06a.RData') # objects from 06a
+```
+
+Instead of building up sections, trialing cutting down the tooth
+
+- and seeing which elements are aligned in a section
+- and importantly, whether cutting it makes the tooth end to an earlier part of the vert
+
+5 gives a general idea - quick
+10 fits the end much better
+
+## SMA001 (water)
+
+```{r sma001w, fig.height = 8}
+s <- stack_alignments(SMA001T_filt, SMA001V_filt, # 1
+                      elements = mavs2, # or mavs1 for just the main 4
+                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
+                      n = 1000, n_steps = c(16, 8), # how high res the map is
+                      tol_um = 600, ref_step = 1000, # how (detailed) the table prints
+                      plot = "heat", # for continuous scale
+                      bands = c(710, # a visual of how path relates to banding
+                                1715, 2900, 5900, 
+                                8500, 9175, 9600))
+```
+
+```{r sma001w-cuts-indi, fig.height = 14}
+s$plot(by_element = TRUE)
+```
+
+
+```{r sma001w-indi, fig.height = 8}
+s$heat(by_element = TRUE)
+```
+Sr and Mg: looks like an anchor between 4000 and 5000 on tooth with 6000 - 9500 on vert
+And then overall @ 3300 on tooth to 5100 (Mg, Mn, Zn, Li, Ba)
+
+## SMA001 (bleach)
+
+```{r sma001b, fig.height = 8}
+t <- stack_alignments(SMA001TB_filt, SMA001VB_filt, # removing end due to inc holes
+                      elements = mavs2, # or mavs1 for just the main 4
+                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
+                      n = 1000, n_steps = c(16, 8), # how high res the map is
+                      tol_um = 600, ref_step = 1000, # how (detailed) the table prints
+                      plot = "heat", # for continuous scale
+                      bands = c(630, # birth
+                                1210, 2400, 5600, 
+                                8000, 8800, 9300))
+```
+
+```{r sma001b-cuts-indi, fig.height = 14}
+t$plot(by_element = TRUE)
+```
+
+```{r sma001b-indi, fig.height = 8}
+t$heat(by_element = TRUE)
+```
+2000 - 48000 tooth (Mg, Sr)
+
+## SMA002
+
+```{r sma002, fig.height = 8}
+u <- stack_alignments(SMA002T_filt, SMA002V_filt, # sawfish 1 - bleach
+                      elements = mavs2, # or mavs1 for just the main 4
+                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
+                      n = 1000, n_steps = c(16, 8), # how high res the map is
+                      tol_um = 600, ref_step = 1000, # how (detailed) the table prints
+                      plot = "heat", # for continuous scale
+                      bands = c(770, 1025, # birth and/or 1yr
+                                1650, 2700, 3700,
+                                4550, 7550))
+```
+
+```{r sma002-cuts-indi, fig.height = 14}
+u$plot(by_element = TRUE)
+```
+
+```{r sma002-indi, fig.height = 8}
+u$heat(by_element = TRUE) 
+```
+
+## Do the cuts behave as expected?
+
+For every span combination (loess span on the tooth `spanT` × on the vertebra
+`spanV`) and every element, the tooth is cut down as above, and two things are
+checked:
+
+- **Start**: for each end cut, running through the start cuts: does cutting the tooth
+  start later make the match start later on the vertebra?
+- **End**: for each start cut, running through the end cuts: does cutting the tooth
+  end earlier make the match end earlier on the vertebra?
+
+Within each, the trend shows if it happens over at least `min_steps` consecutive cuts
+(set below). A trend holds for that element and span combination if it shows for at
+least half of the other end's cuts. Elements are not compared with each other. For
+each set, a figure (one panel per element) and a table of the span combinations where
+either trend shows at all. The full table, every combination, is saved to
+`data/output/dtw_final/cut_trends_<set>.csv`.
+
+```{r sets}
+gap_um <- 350   
+sets <- list(
+  SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
+  SMA001B = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
+  SMA002W = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
+
+# held constant across span combinations and sets
+sweep_settings <- list(elements = mavs2,
+                       spansT = c(0.01, 0.02, 0.03, 0.04, 0.05, 0.06), 
+                       spansV = c(0.01, 0.02, 0.03, 0.04, 0.05, 0.06),
+                       n = 1000, n_steps = c(16, 8),
+                       min_steps = 3)   # a trend has to hold this many consecutive cuts
+run_sweep <- function(set) with(sweep_settings, sweep_spans(
+  set$tooth, set$vert, elements, spansT, spansV, min_steps = min_steps, n = n, n_steps = n_steps, gap_um = gap_um,
+  workers = future::availableCores() - 1))
+show_trends <- function(tab) knitr::kable(transform(tab[tab$start_n > 0 | tab$end_n > 0, ],
+    start_n = sprintf("%d/%d", start_n, start_of), end_n = sprintf("%d/%d", end_n, end_of))[
+    c("spanT", "spanV", "element", "start", "start_n", "start_at", "start_cuts", "end", "end_n", "end_at", "end_cuts")],
+  row.names = FALSE)
+trends <- list()
+```
+
+- **start**: the start trend holds (shows for at least half of the end cuts).
+- **start_n**: for how many of the end cuts it shows; **start_at**: the range of those end cuts (tooth µm).
+- **start_cuts**: tooth a–b → vert c–d: across those, cutting the tooth start from a to b (µm) moved the start of the match from c to d on the vertebra.
+- **end, end_n, end_at, end_cuts**: the same for cutting the tooth end, within each start cut: cutting it from b back to a moved the end of the match from d back to c.
+- "-" = the trend never showed over `min_steps` consecutive cuts.
+
+### SMA001 (water)
+
+```{r sweep-sma001w, fig.height = 8}
+trends$SMA001W <- run_sweep(sets$SMA001W)
+plot_trends(trends$SMA001W, sweep_settings$min_steps)
+show_trends(trends$SMA001W)
+```
+
+### SMA001 (bleach)
+
+```{r sweep-sma001b, fig.height = 8}
+trends$SMA001B <- run_sweep(sets$SMA001B)
+plot_trends(trends$SMA001B, sweep_settings$min_steps)
+show_trends(trends$SMA001B)
+```
+
+### SMA002
+
+```{r sweep-sma002w, fig.height = 8}
+trends$SMA002W <- run_sweep(sets$SMA002W)
+plot_trends(trends$SMA002W, sweep_settings$min_steps)
+show_trends(trends$SMA002W)
+```
+
+```{r save}
+# spans of the stack_alignments() calls above (s, t, u), kept with their runs
+down <- list(SMA001W = list(runs = s$runs, spanT = 0.02, spanV = 0.04),
+             SMA001B = list(runs = t$runs, spanT = 0.01, spanV = 0.02),
+             SMA002W = list(runs = u$runs, spanT = 0.01, spanV = 0.02))
+dir.create('data/output/dtw_final', showWarnings = FALSE)
+for(n in names(trends)) write.csv(trends[[n]], sprintf('data/output/dtw_final/cut_trends_%s.csv', n), row.names = FALSE)
+save(sets, trends, sweep_settings, gap_um, down, file = 'data/output/dtw_cache/06c.RData')
+```

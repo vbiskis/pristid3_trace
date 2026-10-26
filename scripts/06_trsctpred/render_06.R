@@ -2,53 +2,45 @@
 #' render_06.R
 #' Content:
 #' renders the 06a-06f .Rmd files to GitHub markdown (.md + figure folders), in order
+#' (render_reports() in helpers/functions/fxn_render.R does the work)
 #' + each file runs in its own fresh R session, so nothing leaks between them
-#' + 06a saves data/output/dtw_cache/06a.RData, which 06b-06e load; 06b saves 06b.RData for 06f
+#' + each file's old .md and figure folder are replaced, so no stale plots are left behind
+#'   (if a render fails, the old figures are put back)
+#' + 06a saves data/output/dtw_cache/06a.RData, which 06b-06f load; 06c (warp down) saves 06c.RData,
+#'   06d (warp up) saves 06d.RData, 06e (final table) saves 06e.RData, and 06f (figures) uses all three
 #' + logs go to data/output/dtw_cache/logs/
-#' run from any folder (Terminal, so it keeps going while you're away):
+#' from R (RStudio / VS Code), all of them:
+#'   source('scripts/06_trsctpred/render_06.R')
+#' from Terminal, any folder (caffeinate keeps the Mac awake while you're away):
 #'   caffeinate -i Rscript ~/Docs/GitHub/phd_chapters/pristid3_trace/scripts/06_trsctpred/render_06.R          # all of them
 #'   caffeinate -i Rscript ~/Docs/GitHub/phd_chapters/pristid3_trace/scripts/06_trsctpred/render_06.R 06d 06e  # just these (needs 06a.RData already)
 #' -----------
 
-# move to the project root (two folders up from this script), wherever it was called from
+local({
+
+# where this script is: from Rscript (--file=) or from source() (ofile)
 self <- sub('^--file=', '', grep('^--file=', commandArgs(trailingOnly = FALSE), value = TRUE))
-setwd(if(length(self) == 1) file.path(dirname(normalizePath(self)), '..', '..') else here::here())
+if(length(self) == 0) self <- sys.frame(1)$ofile
+if(is.null(self)) stop("run the whole file with source() or Rscript, not line by line")
+dir_06 <- dirname(normalizePath(self)) # the .Rmd files sit next to this script
+
+# project root = the folder with the .Rproj (put back where you were when done)
+old_wd <- setwd(dir_06)
+on.exit(setwd(old_wd))
+setwd(here::here())
+source('helpers/functions/fxn_render.R', local = TRUE)
 
 docs <- c('06a' = '06a_dtw_prep.Rmd',
           '06b' = '06b_dtw_run.Rmd',
-          '06c' = '06c_dtw_warpup.Rmd',
-          '06d' = '06d_dtw_warpdown.Rmd',
-          '06e' = '06e_dtw_rates.Rmd',
-          '06f' = '06f_dtw_plots.Rmd')
-needs <- c('06b' = '06a', '06c' = '06a', '06d' = '06a', '06e' = '06a', '06f' = '06b')
+          '06c' = '06c_dtw_warpdown.Rmd',   # warp down: cutting the tooth, sweeps, warp-down mix
+          '06d' = '06d_dtw_warpup.Rmd',     # warp up: random-order + sequential windows, warp-up mix
+          '06e' = '06e_dtw_rates.Rmd',      # final table: Mg matches and forced alignments
+          '06f' = '06f_dtw_plots.Rmd')      # final figures
+needs <- c('06b' = '06a', '06c' = '06a', '06d' = '06c', '06e' = '06d', '06f' = '06e')
 
-pick <- commandArgs(trailingOnly = TRUE)
+pick <- setdiff(commandArgs(trailingOnly = TRUE), '--args')
 if(length(pick) == 0) pick <- names(docs)
 
-# pandoc ships inside RStudio; Rscript from Terminal doesn't find it on its own
-if(Sys.getenv('RSTUDIO_PANDOC') == '')
-  Sys.setenv(RSTUDIO_PANDOC = '/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools')
+render_reports(dir_06, docs, needs, pick, log_dir = 'data/output/dtw_cache/logs')
 
-dir_06 <- 'scripts/06_trsctpred'
-logs   <- 'data/output/dtw_cache/logs'
-dir.create(logs, recursive = TRUE, showWarnings = FALSE)
-
-status <- c()
-for(k in pick){
-  dep <- needs[k]
-  if(!is.na(dep) && identical(status[dep], 'FAILED')){
-    status[k] <- 'SKIPPED'
-    message(k, ': skipped, ', dep, ' failed')
-    next
-  }
-  log <- file.path(logs, paste0(k, '.log'))
-  message(format(Sys.time(), '%H:%M'), '  ', k, ': rendering (log: ', log, ')')
-  t0 <- Sys.time()
-  code <- system(sprintf("Rscript -e %s > %s 2>&1", shQuote(sprintf(
-    "rmarkdown::render('%s', envir = globalenv())", file.path(dir_06, docs[k]))), shQuote(log)))
-  mins <- round(as.numeric(difftime(Sys.time(), t0, units = 'mins')), 1)
-  status[k] <- if(code == 0) 'ok' else 'FAILED'
-  message(format(Sys.time(), '%H:%M'), '  ', k, ': ', status[k], ' (', mins, ' min)')
-}
-
-print(data.frame(doc = names(status), status = status), row.names = FALSE)
+})

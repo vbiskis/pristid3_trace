@@ -13,11 +13,14 @@
 #' -----------
 
 library(dtw) # fxn 1-3
+library(patchwork) # fxn 1 combined plots
+source('helpers/functions/fxn_gaps.R') # smoothing that stops at holes
 library(dtwclust) # fxn 4
 
 # compare vert & tooth, free element behaviour
 align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis but a fxn now
-                      pattern = asymmetric, spanT = 0.02, spanV = 0.01) {
+                      pattern = asymmetric, spanT = 0.02, spanV = 0.01,
+                      gap_um = 50) { # holes wider than this (um) are smoothed either side, not across
   
   datT <- datT[order(datT$true_dist), ]
   datV <- datV[order(datV$true_dist), ]   # this sort fixes everything.
@@ -28,8 +31,8 @@ align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis 
   
   for(element in elements) {
     smooth_col <- paste0(element, "_smooth")
-    datT[[smooth_col]] <- predict(loess(datT[[element]] ~ datT$true_dist, span = spanT[[element]]))
-    datV[[smooth_col]] <- predict(loess(datV[[element]] ~ datV$true_dist, span = spanV[[element]]))
+    datT[[smooth_col]] <- smooth_gaps(datT$true_dist, datT[[element]], spanT[[element]], gap_um)
+    datV[[smooth_col]] <- smooth_gaps(datV$true_dist, datV[[element]], spanV[[element]], Inf) # verts: never split
   }
   
   results <- list()
@@ -83,15 +86,45 @@ align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis 
       geom_line(data = df2, aes(distance, value), color = "darkgrey") +
       geom_line(data = df1, aes(distance, value), color = "brown") +
       theme_bw() +
-      labs(x = "Distance (um)", y = element, title = element)
-    
-    print(p)
-    
+      labs(x = "Vertebra (um)", y = element)
+
     tryCatch({
-      plot(alignment, type = "two", offset = 1, main = element)
-      plot(alignment, type = "threeway", main = element)
+      # twoway: tooth shifted up 3 above vert, dashed lines join ~60 matched points
+      two <- data.frame(index  = c(seq_along(tSmooth), seq_along(vSmooth)),
+                        value  = c(tSmooth + 3, vSmooth),
+                        series = rep(c("Tooth", "Vert"), c(length(tSmooth), length(vSmooth))))
+      m <- unique(round(seq(1, length(alignment$index1), length.out = 60)))
+      links <- data.frame(x = alignment$index1[m], xend = alignment$index2[m],
+                          y = tSmooth[alignment$index1[m]] + 3, yend = vSmooth[alignment$index2[m]])
+      p_two <- ggplot() +
+        geom_segment(data = links, aes(x = x, y = y, xend = xend, yend = yend),
+                     colour = "grey60", linetype = "dashed", linewidth = 0.3) +
+        geom_line(data = two, aes(index, value, colour = series)) +
+        scale_colour_manual(values = c(Tooth = "brown", Vert = "darkgrey")) +
+        theme_bw() +
+        labs(x = "Index (resampled points)", y = paste(element, "z-score"), colour = NULL)
+
+      # warping path: vert position each tooth position maps to
+      path <- data.frame(vert  = datV$true_dist[vert_idx[alignment$index2]],
+                         tooth = datT$true_dist[tooth_idx[alignment$index1]])
+      p_path <- ggplot(path, aes(vert, tooth)) +
+        geom_line(colour = "brown") +
+        theme_bw() +
+        labs(x = "Vertebra (um)", y = "Tooth (um)")
+
+      # overlay on the left, twoway over warping path on the right
+      print((p | (p_two / p_path)) + plot_annotation(
+        caption = paste(strwrap(sprintf(paste(
+          "%s. Left: smoothed vertebra (grey) with the smoothed tooth (brown) laid along it by the alignment,",
+          "rescaled to the vertebra's range over the matched region. Top right: the two smoothed series as z-scores",
+          "(tooth shifted up 3), with dashed lines joining about 60 matched points. Bottom right: warping path, the",
+          "tooth position matched to each vertebra position (steep = a lot of tooth matched to little vertebra,",
+          "flat = the reverse). Tooth matched to vertebra %.0f-%.0f um; normalised distance %.3f."),
+          element, vert_start, vert_end, alignment$normalizedDistance), 120), collapse = "\n"),
+        theme = theme(plot.caption = element_text(hjust = 0))))
     }, error = function(err) {
-      cat("Skipping", element, "plots - error:", conditionMessage(err), "\n")
+      print(p)
+      cat("Skipping", element, "twoway/path plots - error:", conditionMessage(err), "\n")
     })
   }
   
@@ -101,7 +134,7 @@ align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis 
 # compare spans across elements to identify fixed location
 align_grid <- function(datA, datB, 
                        elements, spans, ns, 
-                       pattern = asymmetric){
+                       pattern = asymmetric, gap_um = 50){
   
   grid <- expand.grid(element = elements, span = spans, n = ns, stringsAsFactors = FALSE)
   grid$norm_dist  <- NA_real_
@@ -121,8 +154,8 @@ align_grid <- function(datA, datB,
     nn <- grid$n[i]
     
     smooth_col <- paste0(el, "_smooth")
-    datA[[smooth_col]] <- predict(loess(datA[[el]] ~ datA$true_dist, span = sp))
-    datB[[smooth_col]] <- predict(loess(datB[[el]] ~ datB$true_dist, span = sp))
+    datA[[smooth_col]] <- smooth_gaps(datA$true_dist, datA[[el]], sp, gap_um)
+    datB[[smooth_col]] <- smooth_gaps(datB$true_dist, datB[[el]], sp, gap_um)
     
     aSmooth <- approx(seq_along(datA[[smooth_col]]), datA[[smooth_col]], n = nn)$y
     bSmooth <- approx(seq_along(datB[[smooth_col]]), datB[[smooth_col]], n = nn)$y
@@ -204,7 +237,7 @@ select_spans <- function(grid, n_fixed, r2_threshold = 0.9, max_iter = 5){
 align_multi <- function(datT, datV, elements, n = 1000,
          spanT = 0.15, spanV = 0.05, # around 3x the size
          open_begin = TRUE, open_end = TRUE,
-         lockV_start = NULL, pattern = asymmetric){   
+         lockV_start = NULL, pattern = asymmetric, gap_um = 50){   
   
   datT <- datT[order(datT$true_dist), ]
   datV <- datV[order(datV$true_dist), ]
@@ -215,8 +248,8 @@ align_multi <- function(datT, datV, elements, n = 1000,
   # smooth on FULL datV first, always — before any lock-cropping
   for(element in elements) {
     smooth_col <- paste0(element, "_smooth")
-    datT[[smooth_col]] <- predict(loess(datT[[element]] ~ datT$true_dist, span = spanT[[element]]))
-    datV[[smooth_col]] <- predict(loess(datV[[element]] ~ datV$true_dist, span = spanV[[element]]))
+    datT[[smooth_col]] <- smooth_gaps(datT$true_dist, datT[[element]], spanT[[element]], gap_um)
+    datV[[smooth_col]] <- smooth_gaps(datV$true_dist, datV[[element]], spanV[[element]], Inf) # verts: never split
   }
   
   # NEW: crop datV to start at lockV_start, and force open.begin = FALSE on that side
@@ -253,7 +286,7 @@ align_multi <- function(datT, datV, elements, n = 1000,
   par(mfrow = c(ceiling(length(elements)/2), 2))
   for(element in elements) {
     smooth_col <- paste0(element, "_smooth")
-    plot(datV[[smooth_col]] ~ datV$true_dist, type = "l", main = element, ylab = element)
+    plot(datV[[smooth_col]] ~ datV$true_dist, type = "l", ylab = element, xlab = "Vertebra (um)")
     lines(datT[[smooth_col]][tooth_idx[alignment$index1]] ~
             datV$true_dist[vert_idx[alignment$index2]], col = "red")
   }

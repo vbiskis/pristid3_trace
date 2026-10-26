@@ -9,6 +9,7 @@
 #' -----------
 
 library(magick)
+source('helpers/functions/fxn_gaps.R') # smoothing that stops at holes
 
 # simple and useful----
 scale_In <- function(in_vals, primary_vals){
@@ -126,17 +127,24 @@ add_alt <- function(id, elements, denoms){
 # full plots----
 make_plot <- function(id, y_var, color, y_lab, smooth_var = NULL, span = 0.25, 
                       show_In = TRUE, In_style = c("points", "rect"), 
-                      thin = 1, rect_threshold = 0.5){
+                      thin = 1, rect_threshold = 0.5,
+                      gap_um = 50){ # holes wider than this (um): smoothed either side, not across
   
   In_style <- match.arg(In_style)
   smooth_var <- if(is.null(smooth_var)) y_var else smooth_var
   s <- scale_In(id$In_Ca_mav, id[[y_var]])
   id_thin <- id[order(id$true_dist), ][seq(1, nrow(id), by = thin), ]
   
+  # loess per piece between holes (fxn_gaps.R), so the smooth doesn't run across them
+  ok <- is.finite(id$true_dist) & is.finite(id[[smooth_var]])
+  sm <- cbind(data.frame(true_dist = id$true_dist[ok]),
+              smooth_gaps(id$true_dist[ok], id[[smooth_var]][ok], span, gap_um, se = TRUE))
+
   p <- ggplot(id) + labs(x = "Distance (um)") +
     geom_point(data = id_thin, aes(x = true_dist, y = .data[[y_var]]), color = color, alpha = 0.4) +
-    geom_smooth(aes(x = true_dist, y = .data[[smooth_var]]), method = "loess", 
-                span = span, color = "black", se = TRUE, n = 300)
+    geom_ribbon(data = sm, aes(x = true_dist, ymin = fit - 1.96 * se, ymax = fit + 1.96 * se,
+                               group = piece), fill = "grey60", alpha = 0.4) +
+    geom_line(data = sm, aes(x = true_dist, y = fit, group = piece), color = "black", linewidth = 1)
   
   if(show_In && In_style == "points"){
     p <- p +
@@ -156,9 +164,11 @@ profs <- function(id, elrats, hardtype,
                   img_path = NULL, show_In = TRUE,
                   In_style = c("points", "rect"),
                   rect_threshold = 0.5,
-                  alt_denom = NULL){
+                  alt_denom = NULL,
+                  gap_um = 50){ # holes wider than this (um): smoothed either side, not across
   
   In_style <- match.arg(In_style)
+  if(hardtype != "tooth") gap_um <- Inf  # verts: In doesn't mark holes the same way, never split
   spikes <- get_spikes(id, threshold = rect_threshold)
   
   if(hardtype == "tooth"){
@@ -187,17 +197,17 @@ profs <- function(id, elrats, hardtype,
   
   # smooth the original elrats AND the new raw alt-ratio columns together
   elrats_all <- unique(c(elrats, alt_cols))
-  id <- id %>% group_modify(~ add_mavs(.x, elrats_all, window_size = window_size))
+  id <- id %>% group_modify(~ add_mavs(.x, elrats_all, window_size = window_size, gap_um = gap_um))
   
   if(hardtype == "tooth") id <- id %>% filter(In_Ca_mav <= 20)
   
-  a  <- make_plot(id, "Sr_Ca_mav", "darkgreen", "Sr:Ca", "Sr_Ca", span, show_In, In_style, thin, rect_threshold)
-  b  <- make_plot(id, "Ba_Ca_mav", "darkblue",  "Ba:Ca", "Ba_Ca", span, show_In, In_style, thin, rect_threshold)
-  e  <- make_plot(id, "Mn_Ca_mav", "lightblue", "Mn:Ca", "Mn_Ca", span, show_In, In_style, thin, rect_threshold)
-  cc <- make_plot(id, "Li_Ca_mav", "orange",    "Li:Ca", "Li_Ca", span, show_In, In_style, thin, rect_threshold)
-  d  <- make_plot(id, "Mg_Ca_mav", "purple",    "Mg:Ca", "Mg_Ca", span, show_In, In_style, thin, rect_threshold)
-  f  <- make_plot(id, "Zn_Ca_mav", "brown",      "Zn:Ca", "Zn_Ca", span, show_In, In_style, thin, rect_threshold)
-  g  <- make_plot(id, "Ca43_CPS", "pink", "Ca", "Ca43_CPS", span, show_In, In_style, thin, rect_threshold)
+  a  <- make_plot(id, "Sr_Ca_mav", "darkgreen", "Sr:Ca", "Sr_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  b  <- make_plot(id, "Ba_Ca_mav", "darkblue",  "Ba:Ca", "Ba_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  e  <- make_plot(id, "Mn_Ca_mav", "lightblue", "Mn:Ca", "Mn_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  cc <- make_plot(id, "Li_Ca_mav", "orange",    "Li:Ca", "Li_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  d  <- make_plot(id, "Mg_Ca_mav", "purple",    "Mg:Ca", "Mg_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  f  <- make_plot(id, "Zn_Ca_mav", "brown",      "Zn:Ca", "Zn_Ca", span, show_In, In_style, thin, rect_threshold, gap_um)
+  g  <- make_plot(id, "Ca43_CPS", "pink", "Ca", "Ca43_CPS", span, show_In, In_style, thin, rect_threshold, gap_um)
   
   # --- alt-ratio panels, now using the smoothed mav column for points/rects
   #     and the raw (pre-smoothing) column for the loess smooth line ---
@@ -208,7 +218,7 @@ profs <- function(id, elrats, hardtype,
       alt_col_raw <- paste0(el, "_", alt_denom)
       alt_lab <- paste0(el, ":", alt_denom)
       alt_plots[[el]] <- make_plot(id, alt_col_mav, all_els[[el]], alt_lab, alt_col_raw, span,
-                                   show_In, In_style, thin, rect_threshold)
+                                   show_In, In_style, thin, rect_threshold, gap_um)
     }
   }
   

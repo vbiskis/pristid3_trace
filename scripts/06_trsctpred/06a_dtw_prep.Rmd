@@ -32,18 +32,18 @@ names(transsplit)
 
 plot_els <- c('Sr_Ca', 'Ba_Ca', 'Mg_Ca', 'Li_Ca')
 elsg <- els[!els %in% c("Cu_Ca", "Pb_Ca", 'Ni_Ca')]
-SMA001TB <- subset(flag_holes(transsplit[[54]], trigger = 5, release = 2.5), !.hole)
-SMA001T <- subset(flag_holes(transsplit[[55]], trigger = 3, release = 1.5), !.hole)
+SMA001TB <- subset(flag_holes(transsplit[[54]], trigger = 2.5, release = 1.25), !.hole)
+SMA001T <- subset(flag_holes(transsplit[[55]], trigger = 2.5, release = 1.25), !.hole)
 SMA001VB <- transsplit[[56]]
 SMA001V <- transsplit[[57]]
-SMA002TB <- subset(flag_holes(transsplit[[58]], trigger = 3, release = 1.5), !.hole)
-SMA002T <- subset(flag_holes(transsplit[[59]], trigger = 3, release = 1.5), !.hole)
+SMA002TB <- subset(flag_holes(transsplit[[58]], trigger = 2.5, release = 1.25), !.hole)
+SMA002T <- subset(flag_holes(transsplit[[59]], trigger = 2.5, release = 1.25), !.hole)
 SMA002V <- transsplit[[60]]
 ```
 
 ## Check other ratios
 
-```{r other-ratios}
+```{r ratios}
 plot_els_ba <- c('Sr_Ba', 'Mg_Ba', 'Li_Ba', 'Mn_Ba', 'Zn_Ba')
 plot_els_mg <- c('Sr_Mg', 'Ba_Mg', 'Li_Mg', 'Mn_Mg', 'Zn_Mg')
 denoms   <- c('Ba', 'Mg')
@@ -60,14 +60,14 @@ list2env(dfs, envir = .GlobalEnv)
 ```{r mavs}
 allmavs <- Reduce(union, list(elsg, plot_els_ba, plot_els_mg, 'In_Ca'))
 
-SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 11) # 43 um for all
-SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 11)
-SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 21)
-SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 21)
+SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 11, gap_um = 350) # 43 um for all
+SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
+SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 31)
+SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 31)
 
-SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 11)
-SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 11)
-SMA002V <- add_mavs(SMA002V, ratio_columns = allmavs, window_size = 21)
+SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 11, gap_um = 350)
+SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
+SMA002V <- add_mavs(SMA002V, ratio_columns = allmavs, window_size = 31)
 
 names(SMA001TB)
 ```
@@ -78,57 +78,50 @@ names(SMA001TB)
 
 ```{r filt-sma001t}
 SMA001T_filt <- SMA001T %>% filter(true_dist >= 650, true_dist <= 55583) %>% na.omit()
-make_plot(SMA001T_filt, 'Sr_Ca', color = "brown", # had to clip it 3000 extra due to contam
-          'Sr_Ca', span = 0.05, show_In = TRUE)
+make_plot(SMA001T_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.01, show_In = TRUE)
 ```
 
 ### SMA001 tooth (bleach)
 
 ```{r filt-sma001tb}
-SMA001TB_filt <- SMA001TB %>% filter(true_dist >= 5000, # remove na (overcautious but to be safe)
+SMA001TB_filt <- SMA001TB %>% filter(true_dist >= 12000, # remove na (overcautious but to be safe)
                                      true_dist <= 55402) %>% na.omit()
-make_plot(SMA001TB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE)
+make_plot(SMA001TB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.01, show_In = TRUE)
 ```
 
 ### SMA001 vert (water)
 
 ```{r filt-sma001v}
 SMA001V_filt <- SMA001V %>% filter(true_dist >= 710, true_dist <= 10659) %>% na.omit()
-make_plot(SMA001V_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA001V_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.02, show_In = FALSE)
 ```
 
 ### SMA001 vert (bleach)
 
 ```{r filt-sma001vb}
 SMA001VB_filt <- SMA001VB %>% filter(true_dist >= 745, true_dist <= 9968) %>% na.omit() # from measurements
-make_plot(SMA001VB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA001VB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.02, show_In = FALSE)
 ```
 
 ### SMA002 tooth (bleach)
 
 ```{r filt-sma002tb}
 SMA002TB_filt <- SMA002TB %>% filter(true_dist <= 49907) %>% na.omit() # yuck - toss
-make_plot(SMA002TB_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE, In_style = "points")
+make_plot(SMA002TB_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.01, show_In = TRUE, In_style = "points")
 ```
 
 ### SMA002 tooth (water)
 
 ```{r filt-sma002t}
 SMA002T_filt <- SMA002T %>% na.omit() # he's great tho!
-make_plot(SMA002T_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.05, show_In = TRUE, In_style = "points")
+make_plot(SMA002T_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.01, show_In = TRUE, In_style = "points")
 ```
 
 ### SMA002 vert (bleach)
 
 ```{r filt-sma002v}
 SMA002V_filt <- SMA002V %>% filter(true_dist >= 334, true_dist <= 7952) %>% na.omit() # from measurements
-make_plot(SMA002V_filt, 'Sr_Ca', color = "brown",
-          'Sr_Ca', span = 0.0125, show_In = TRUE, In_style = "points")
+make_plot(SMA002V_filt, 'Sr_Ca', color = "brown", 'Sr_Ca', span = 0.02, show_In = FALSE)
 ```
 
 ## Mav column names
@@ -154,29 +147,30 @@ ns <- c(500, 1000, 2000)
 
 ### Tooth 1
 
-```{r tooth-test}
-tooth_comp <- align_grid(SMA001TB_filt, SMA001T_filt, mavs2, spans, ns)
+```{r tooth-test, fig.height = 7}
+tooth_comp <- align_grid(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, mavs2, spans, ns)
 # quick function for summarising these
 result <- select_spans(tooth_comp, n_fixed = 2000, r2_threshold = 0.9) # yes!
 span_vec <- setNames(result$chosen$span, result$chosen$element) # for ca ratios
+span_vec
 
 diff(range(SMA001TB_filt$true_dist, na.rm = TRUE)) # for comparison
 result$consensus_end - result$consensus_start # better!
 
 align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
-          spanT = 0.01, spanV = 0.01, n = 2000) # all start around 20! nice work
-# median looks to be 0.01
+          spanT = 0.02, spanV = 0.02, n = 2000) # all start around 20! nice work
+# median looks to be 0.025, importantly Mg is < 0.01
 ```
+
+interesting: Mg/Sr have a better res (~0.01) than the rest which show a general pattern (~0.1)
 
 #### Test it now
 
 ```{r tooth-grid}
 
-finalt <- align_multi(SMA001T_filt, SMA001TB_filt,
-                      elements = mavs1,
+finalt <- align_multi(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, elements = mavs1,
                       open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.05, spanV = 0.05,
-                      n = 2000) # and this matches that number well too!
+                      spanT = 0.02, spanV = 0.02, n = 2000) # and this matches that number well too!
 
 range(SMA001T_filt$true_dist)
 range(SMA001TB_filt$true_dist)
@@ -190,25 +184,25 @@ But most importantly: our verts.
 vert_comp <- align_grid(SMA001V_filt, SMA001VB_filt, mavs2, spans, ns)
 result <- select_spans(vert_comp, n_fixed = 2000, r2_threshold = 0.9) # awesome!
 span_vecv <- setNames(result$chosen$span, result$chosen$element) # oh wow
+span_vecv 
 
 # how much wigglier are we talking
-span_vecv/span_vec # was span_vec2 in the .R script, which isn't defined anywhere in 06a
-# that actually makes a lot of sense.
+span_vecv/span_vec # woah okay Li, Mg, Sr are all ~ 1:1
 
 align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
-          spanT = 0.001, spanV = 0.001, n = 2000)
+          spanT = 0.01, spanV = 0.01, n = 2000)
 # plots look EXCELLENT!
 
 ```
 
 #### Test it now
 
-```{r vert-grid}
+```{r vert-grid, fig.height = 7}
 
 finalv <- align_multi(SMA001VB_filt, SMA001V_filt,
                       elements = mavs1,
                       open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.01, spanV = 0.01,
+                      spanT = 0.02, spanV = 0.02,
                       n = 2000)
 
 # straight up... wow
