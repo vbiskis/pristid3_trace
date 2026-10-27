@@ -14,10 +14,10 @@ output:
 - **Content:** dynamic time warping III: build the match up along the vertebra, window by window
 
 The original version is in `original/06c_dtw_warpup.R`.
-For each version (06c), with 500 µm vertebra windows every 200 µm, 
-each allowed to match 1–12 µm of tooth per µm of vertebra (15 steps, tooth starts every 200 µm).
-Each window picks its own growth ratio, since it's expected to change along the vertebra (early
-in life, a µm of vertebra probably relates to more tooth than later). Both records use only 06a's rolling medians (no further smoothing):
+For each version exported in 06c, window picks its own growth ratio, since it's expected to change 
+along the vertebra (early in life, a µm of vertebra probably relates to more tooth than later). 
+
+500 µm vertebra windows every 200 µm, allowed to match 1–12 µm of tooth per µm of vertebra.
 
 1. **Build from the anchor**: the first window of the anchor (where the version's anchor
    elements start out close and keep a steady, parallel slope, 06c) is matched with its
@@ -25,7 +25,7 @@ in life, a µm of vertebra probably relates to more tooth than later). Both reco
    the tooth than the last, and backward, each starting earlier, so it can only add to the alignment.
    
    Each direction stops when there's no tooth left, or where the tooth doesn't align to the vertebra at all: 
-   near flat (ratio 100 per 500) or near vertical (5000 µm per 100 µm).
+   near flat (ratio 250 per 750) or near vertical (12500 µm per 500 µm).
 
 2. **All elements over the built-out stretch**: one `match_window()` over the whole stretch the build reached + its figure.
 

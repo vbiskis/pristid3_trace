@@ -60,7 +60,8 @@ list2env(dfs, envir = .GlobalEnv)
 ```{r mavs}
 allmavs <- Reduce(union, list(elsg, plot_els_ba, plot_els_mg, 'In_Ca'))
 
-SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 21, gap_um = 350) # 21 pts x 8.6 um = 181 um (~3.6 spots); verts 61 x 2.9 = 176 um (~3.5 spots)
+SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 21, gap_um = 350) 
+# 21 pts x 8.6 um = 181 um (~3.6 spots); verts 61 x 2.9 = 176 um (~3.5 spots)
 SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 21, gap_um = 350)
 SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 61)
 SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 61)

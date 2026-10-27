@@ -1,7 +1,7 @@
 06e · DTW element combinations
 ================
 Nikki Biskis
-Rendered 27 Oct 2026 21:19
+Rendered 27 Oct 2026 21:49
 
 - [Tables](#tables)
   - [SMA001W](#sma001w)
@@ -252,4 +252,5 @@ dir.create('data/output/dtw_final', showWarnings = FALSE)
 dir.create('figures/dtw', showWarnings = FALSE)
 write.csv(combo_tab, 'data/output/dtw_final/element_combos.csv', row.names = FALSE)
 for(n in fish) ggsave(paste0('figures/dtw/element_combos_', n, '.png'), figs[[n]], width = 10, height = 9, dpi = 300)
+save(combo_tab, file = 'data/output/dtw_cache/06e.RData')   # for 06f
 ```

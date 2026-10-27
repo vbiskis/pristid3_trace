@@ -13,23 +13,19 @@ output:
 - **Written:** summary Oct 2026
 - **Content:** where each method puts the tooth on the vertebra
 
-Starts from 06a, 06c, 06d and 06e (`data/output/dtw_cache/`). The previous version (match_window
-checks over four stretches) is in `original/06f_dtw_checks.Rmd`.
+Starts from 06a, 06c, 06d and 06e (`data/output/dtw_cache/`). 
 
-**Build-out by version** first: each fish's anchor versions (06c2: the element pair whose paths
-start close and keep a steady slope) built out from their anchors (06d), overlaid. Different
-element pairs align different parts of the record.
+I';; make it prettier eventuall! For now a lot of base R.
 
-Then, for each fish, where four methods put the tooth on the vertebra, in report order:
+Each specimens alignment test:
 
-- **A · 06c cut**: the tooth is cut at its start and end (06c). An element that tracks real
-  growth starts later on the vertebra when the tooth's start is cut, and ends earlier when its end
-  is cut; one that doesn't (e.g. always ending at the vertebra's end) is just warping to fit.
-  Elements whose placement moves the right way for both (Spearman ρ over all cuts above
-  `rho_min`) are kept, and their placements of the whole, uncut tooth are averaged.
-- **B · 06d build**: the stretch the build from each version's anchor covered, and the tooth it
-  matched.
-- **C · 06d free**: that same stretch of vertebra, with the tooth placed freely by all five
+- **A · 06c cut**: the tooth is cut at its start and end (06c). An element that tracks growth correctly
+  starts later on the vertebra when the tooth's start is cut, and ends earlier when its end is cut; 
+  one that doesn't (e.g. always ending at the vertebra's end) is just warping to fit.
+  Elements whose placement moves the right way for both (Spearman ρ over all cuts above `rho_min`) are kept, 
+  and their placements of the whole, uncut tooth are averaged.
+- **B · 06d build**: after identifying a solid anchor in 6c, systematically adding to the pattern
+- **C · 06d free**: that same stretch of vertebra from B, but with the tooth placed freely by all five
   final elements (06d step 2), an independent check on B.
 - **D · 06e mix**: `align_multi()` on the whole records with the largest mix of elements that
   keeps the placement within `shift_max` of Mg alone (06e's shift_um), best fit at that size.
@@ -81,7 +77,7 @@ p_ver <- ggplot() +
   theme(plot.caption = element_text(hjust = 0)) +
   labs(x = "Vertebra (um)", y = "Tooth (um)", colour = "Version (anchor pair)", fill = "Version (anchor pair)",
        caption = paste(strwrap(paste(
-         "Each fish's anchor versions overlaid. Points = 06d build-out windows (x = vertebra window centre, y = centre",
+         "Each specimen versions overlaid. Points = 06d build-out windows (x = vertebra window centre, y = centre",
          "of the matched tooth piece; size = how much the vertebra window varies), joined in order; shaded = each",
          "version's anchor; colour = version and the element pair it was anchored with. Brown lines = vertebral bands."),
          115), collapse = "\n"))
@@ -268,5 +264,5 @@ write.csv(place, 'data/output/dtw_final/placements.csv', row.names = FALSE)
 write.csv(cut_tab, 'data/output/dtw_final/cut_response.csv', row.names = FALSE)
 ggsave('figures/dtw/buildout_versions.png', p_ver, width = 10, height = 10, dpi = 300)
 for(f in names(figs)) ggsave(paste0('figures/dtw/placements_', f, '.png'), figs[[f]], width = 10, height = 12, dpi = 300)
-save(place, cut_tab, el_paths, paths, built, file = 'data/output/dtw_cache/06f.RData')
+save(place, cut_tab, el_paths, paths, built, best_mix, cmp_settings, file = 'data/output/dtw_cache/06f.RData')
 ```

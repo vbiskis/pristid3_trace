@@ -1,7 +1,7 @@
 06b · DTW run
 ================
 Nikki Biskis
-Rendered 27 Oct 2026 21:03
+Rendered 27 Oct 2026 21:47
 
 - [SMA001](#sma001)
   - [Multi: bleach](#multi-bleach)
@@ -68,42 +68,42 @@ SMA001TB_out$plots$Ca #(never gets to the base, tooth incomplete)
 # rep1
 align_els(SMA001T_filt,
           SMA001V_filt, # Ba gets confused
-          elements = names(span_vec),
+          elements = mavs2,
           n = 2000)
 ```
+
+    #> Sr_Ca_mav 
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  6915.241 to 10656.56 
+    #>  Normalized distance: 0.4927315
+
+![](06b_dtw_run_files/figure-gfm/sma001-els-w-1.png)<!-- -->
 
     #> Ba_Ca_mav 
     #>  Tooth: 864.045 to 54832.29 
     #>  Vert:  7194.615 to 10647.92 
     #>  Normalized distance: 0.6464673
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-w-1.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-w-2.png)<!-- -->
 
     #> Li_Ca_mav 
     #>  Tooth: 864.045 to 54832.29 
     #>  Vert:  3528.184 to 4844.413 
     #>  Normalized distance: 0.5758643
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-w-2.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-w-3.png)<!-- -->
 
     #> Mg_Ca_mav 
     #>  Tooth: 864.045 to 54832.29 
     #>  Vert:  2237.877 to 10264.86 
     #>  Normalized distance: 0.4157967
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-w-3.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-w-4.png)<!-- -->
 
     #> Mn_Ca_mav 
     #>  Tooth: 864.045 to 54832.29 
     #>  Vert:  3824.839 to 8821.9 
     #>  Normalized distance: 0.4780615
-
-![](06b_dtw_run_files/figure-gfm/sma001-els-w-4.png)<!-- -->
-
-    #> Sr_Ca_mav 
-    #>  Tooth: 864.045 to 54832.29 
-    #>  Vert:  6915.241 to 10656.56 
-    #>  Normalized distance: 0.4927315
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-5.png)<!-- -->
 
@@ -114,6 +114,12 @@ align_els(SMA001T_filt,
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-6.png)<!-- -->
 
+    #> $Sr_Ca_mav
+    #> DTW alignment object
+    #>  Alignment size (query x reference): 2000 x 2000
+    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
+    #>  Call:     open.end = TRUE, open.begin = TRUE)
+    #> 
     #> $Ba_Ca_mav
     #> DTW alignment object
     #>  Alignment size (query x reference): 2000 x 2000
@@ -133,12 +139,6 @@ align_els(SMA001T_filt,
     #>  Call:     open.end = TRUE, open.begin = TRUE)
     #> 
     #> $Mn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Sr_Ca_mav
     #> DTW alignment object
     #>  Alignment size (query x reference): 2000 x 2000
     #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
@@ -154,42 +154,42 @@ align_els(SMA001T_filt,
 # rep2
 align_els(SMA001TB_filt,
           SMA001VB_filt,
-          elements = names(span_vec),
+          elements = mavs2,
           n = 2000)
 ```
+
+    #> Sr_Ca_mav 
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  1336.39 to 6512.02 
+    #>  Normalized distance: 0.4826424
+
+![](06b_dtw_run_files/figure-gfm/sma001-els-b-1.png)<!-- -->
 
     #> Ba_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
     #>  Vert:  7839.769 to 9956.679 
     #>  Normalized distance: 0.6214233
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-b-1.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-b-2.png)<!-- -->
 
     #> Li_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
     #>  Vert:  2756.304 to 4429.671 
     #>  Normalized distance: 0.4318772
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-b-2.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-b-3.png)<!-- -->
 
     #> Mg_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
     #>  Vert:  3862.281 to 9798.271 
     #>  Normalized distance: 0.3306297
 
-![](06b_dtw_run_files/figure-gfm/sma001-els-b-3.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-els-b-4.png)<!-- -->
 
     #> Mn_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
     #>  Vert:  4395.109 to 9965.319 
     #>  Normalized distance: 0.3705884
-
-![](06b_dtw_run_files/figure-gfm/sma001-els-b-4.png)<!-- -->
-
-    #> Sr_Ca_mav 
-    #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  1336.39 to 6512.02 
-    #>  Normalized distance: 0.4826424
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-5.png)<!-- -->
 
@@ -200,6 +200,12 @@ align_els(SMA001TB_filt,
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-6.png)<!-- -->
 
+    #> $Sr_Ca_mav
+    #> DTW alignment object
+    #>  Alignment size (query x reference): 2000 x 2000
+    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
+    #>  Call:     open.end = TRUE, open.begin = TRUE)
+    #> 
     #> $Ba_Ca_mav
     #> DTW alignment object
     #>  Alignment size (query x reference): 2000 x 2000
@@ -219,12 +225,6 @@ align_els(SMA001TB_filt,
     #>  Call:     open.end = TRUE, open.begin = TRUE)
     #> 
     #> $Mn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Sr_Ca_mav
     #> DTW alignment object
     #>  Alignment size (query x reference): 2000 x 2000
     #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
