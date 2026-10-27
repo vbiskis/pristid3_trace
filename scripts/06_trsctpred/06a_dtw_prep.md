@@ -1,7 +1,7 @@
 06a · DTW prep
 ================
 Nikki Biskis
-Rendered 27 Oct 2026 21:02
+Rendered 27 Oct 2026 21:46
 
 - [Check other ratios](#check-other-ratios)
 - [Apply mavs](#apply-mavs)
@@ -14,9 +14,9 @@ Rendered 27 Oct 2026 21:02
   - [SMA002 tooth (water)](#sma002-tooth-water)
   - [SMA002 vert (bleach)](#sma002-vert-bleach)
 - [Mav column names](#mav-column-names)
-- [Structure comparison](#structure-comparison)
-  - [Tooth 1](#tooth-1)
-  - [Vert 1](#vert-1)
+- [Replicate check](#replicate-check)
+  - [Tooth](#tooth)
+  - [Vertebra](#vertebra)
 - [Save for 06b–06e](#save-for-06b06e)
 
 - **Paper:** The potential of elemental analysis in determining origin
@@ -209,144 +209,98 @@ mavsb <- names(SMA001VB_filt)[43:47]
 mavsm <- names(SMA001VB_filt)[48:51]
 ```
 
-## Structure comparison
+## Replicate check
 
-But be systematic.
+The rolling medians above are the only smoothing in the DTW (06b–06f);
+there is no loess. Their width is tested in 06a2: breakpoints stop
+moving from about one spot width (50 µm), and 21 tooth points (181 µm)
+and 61 vertebra points (176 µm), about 3.5 spots each, are used.
 
-``` r
-spans <- c(0.1, 0.075, 0.05, 0.025, 0.01, 0.0075, 0.005) #0.1 is high but
- # and 0.0025 beyond plotting capability
-ns <- c(500, 1000, 2000)
-```
+As a check that this is enough, each pair of replicate transects of the
+same structure (SMA001’s tooth sectioned for water and bleach; likewise
+its vertebra) is aligned. They record the same growth, so the warping
+path should be close to a straight line: **warp_r2** is how straight it
+is (R² of a straight line through the path, 1 = straight) and
+**warp_slope** its slope (1 = the same length); **norm_dist** is the DTW
+fit (lower = closer). In `align_els()`’s figures, “tooth” is the first
+replicate and “vertebra” the second.
 
-### Tooth 1
-
-``` r
-tooth_comp <- align_grid(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, mavs2, spans, ns)
-# quick function for summarising these
-result <- select_spans(tooth_comp, n_fixed = 2000, r2_threshold = 0.9) # yes!
-span_vec <- setNames(result$chosen$span, result$chosen$element) # for ca ratios
-span_vec
-```
-
-    #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
-    #>     0.025     0.050     0.005     0.005     0.100     0.005
+### Tooth
 
 ``` r
-diff(range(SMA001TB_filt$true_dist, na.rm = TRUE)) # for comparison
+rep_fit <- function(a, b) {
+  g <- align_grid(a, b, mavs2, spans = 0, ns = 2000)   # spans = 0: medians only
+  g$element <- sub("_mav$", "", g$element)
+  g[c("element", "norm_dist", "warp_slope", "warp_r2", "startA", "endA", "startB", "endB")]
+}
+knitr::kable(rep_fit(SMA001TB_filt, SMA001T_filt), digits = 2)
 ```
 
-    #> [1] 40834.76
+| element | norm_dist | warp_slope | warp_r2 |   startA |     endA |   startB |     endB |
+|:--------|----------:|-----------:|--------:|---------:|---------:|---------:|---------:|
+| Sr_Ca   |      0.25 |       0.65 |    0.98 | 12001.59 | 52836.35 | 14481.39 | 45163.62 |
+| Ba_Ca   |      0.24 |       0.72 |    0.99 | 12001.59 | 52836.35 |  4562.16 | 39158.52 |
+| Li_Ca   |      0.18 |       0.75 |    0.97 | 12001.59 | 52836.35 |  1131.90 | 33948.33 |
+| Mg_Ca   |      0.27 |       0.72 |    0.97 | 12001.59 | 52836.35 | 12900.19 | 45111.78 |
+| Mn_Ca   |      0.22 |       0.82 |    0.99 | 12001.59 | 52836.35 | 12459.53 | 53605.35 |
+| Zn_Ca   |      0.21 |       0.73 |    0.98 | 12001.59 | 52836.35 | 15751.54 | 52577.13 |
 
 ``` r
-result$consensus_end - result$consensus_start # better!
+tooth_els <- align_els(SMA001TB_filt, SMA001T_filt, elements = mavs2, n = 2000)
 ```
-
-    #> [1] 39210.37
-
-``` r
-align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
-          spanT = 0.02, spanV = 0.02, n = 2000) # all start around 20! nice work
-```
-
-    #> Ba_Ca_mav 
-    #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  15725.62 to 54236.1 
-    #>  Normalized distance: 0.234775
-
-![](06a_dtw_prep_files/figure-gfm/tooth-test-1.png)<!-- -->
-
-    #> Li_Ca_mav 
-    #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  1054.134 to 33922.41 
-    #>  Normalized distance: 0.1705987
-
-![](06a_dtw_prep_files/figure-gfm/tooth-test-2.png)<!-- -->
-
-    #> Mg_Ca_mav 
-    #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  15984.83 to 54832.29 
-    #>  Normalized distance: 0.2498129
-
-![](06a_dtw_prep_files/figure-gfm/tooth-test-3.png)<!-- -->
-
-    #> Mn_Ca_mav 
-    #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  8242.989 to 54236.1 
-    #>  Normalized distance: 0.1893399
-
-![](06a_dtw_prep_files/figure-gfm/tooth-test-4.png)<!-- -->
 
     #> Sr_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  15881.15 to 44463.75 
-    #>  Normalized distance: 0.2811524
+    #>  Vert:  14481.39 to 45163.62 
+    #>  Normalized distance: 0.2518227
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-5.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-els-1.png)<!-- -->
+
+    #> Ba_Ca_mav 
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4562.157 to 39158.52 
+    #>  Normalized distance: 0.2411154
+
+![](06a_dtw_prep_files/figure-gfm/tooth-els-2.png)<!-- -->
+
+    #> Li_Ca_mav 
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  1131.9 to 33948.33 
+    #>  Normalized distance: 0.1843885
+
+![](06a_dtw_prep_files/figure-gfm/tooth-els-3.png)<!-- -->
+
+    #> Mg_Ca_mav 
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  12900.19 to 45111.78 
+    #>  Normalized distance: 0.2663445
+
+![](06a_dtw_prep_files/figure-gfm/tooth-els-4.png)<!-- -->
+
+    #> Mn_Ca_mav 
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  12459.53 to 53605.35 
+    #>  Normalized distance: 0.2193095
+
+![](06a_dtw_prep_files/figure-gfm/tooth-els-5.png)<!-- -->
 
     #> Zn_Ca_mav 
     #>  Tooth: 12001.59 to 52836.35 
-    #>  Vert:  31442.61 to 52603.05 
-    #>  Normalized distance: 0.1701244
+    #>  Vert:  15751.54 to 52577.13 
+    #>  Normalized distance: 0.2107211
 
-![](06a_dtw_prep_files/figure-gfm/tooth-test-6.png)<!-- -->
-
-    #> $Ba_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Li_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Mg_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Mn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Sr_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Zn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-
-``` r
-# median looks to be 0.025, importantly Mg is < 0.01
-```
-
-interesting: Mg/Sr have a better res (~0.01) than the rest which show a
-general pattern (~0.1)
-
-#### Test it now
+![](06a_dtw_prep_files/figure-gfm/tooth-els-6.png)<!-- -->
 
 ``` r
 finalt <- align_multi(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, elements = mavs1,
-                      open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.02, spanV = 0.02, n = 2000) # and this matches that number well too!
+                      open_begin = TRUE, open_end = TRUE, n = 2000)
 ```
 
     #> Tooth: 12001.59 to 49993.64 
-    #>  Vert:  15881.15 to 48999.99 
-    #>  Normalized distance: 0.5211253
+    #>  Vert:  15829.3 to 48948.15 
+    #>  Normalized distance: 0.4883055
 
-![](06a_dtw_prep_files/figure-gfm/tooth-grid-1.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/tooth-multi-1.png)<!-- -->
 
 ``` r
 range(SMA001T_filt$true_dist)
@@ -360,144 +314,89 @@ range(SMA001TB_filt$true_dist)
 
     #> [1] 12001.59 52836.35
 
-### Vert 1
-
-But most importantly: our verts.
+### Vertebra
 
 ``` r
-vert_comp <- align_grid(SMA001V_filt, SMA001VB_filt, mavs2, spans, ns)
-result <- select_spans(vert_comp, n_fixed = 2000, r2_threshold = 0.9) # awesome!
-span_vecv <- setNames(result$chosen$span, result$chosen$element) # oh wow
-span_vecv 
+knitr::kable(rep_fit(SMA001VB_filt, SMA001V_filt), digits = 2)
 ```
 
-    #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
-    #>     0.005     0.025     0.075     0.100     0.075     0.100
+| element | norm_dist | warp_slope | warp_r2 | startA |    endA |  startB |     endB |
+|:--------|----------:|-----------:|--------:|-------:|--------:|--------:|---------:|
+| Sr_Ca   |      0.02 |       0.94 |    1.00 | 745.96 | 9965.32 | 1612.88 | 10656.56 |
+| Ba_Ca   |      0.01 |       0.82 |    0.99 | 745.96 | 9965.32 | 1503.44 |  8816.14 |
+| Li_Ca   |      0.10 |       0.98 |    1.00 | 745.96 | 9965.32 | 1123.26 | 10656.56 |
+| Mg_Ca   |      0.06 |       0.95 |    1.00 | 745.96 | 9965.32 | 1463.12 | 10630.63 |
+| Mn_Ca   |      0.14 |       0.83 |    0.98 | 745.96 | 9965.32 | 1811.62 |  9173.28 |
+| Zn_Ca   |      0.22 |       0.92 |    0.99 | 745.96 | 9965.32 | 1820.26 | 10656.56 |
 
 ``` r
-# how much wigglier are we talking
-span_vecv/span_vec # woah okay Li, Mg, Sr are all ~ 1:1
+vert_els <- align_els(SMA001VB_filt, SMA001V_filt, elements = mavs2, n = 2000)
 ```
 
-    #> Ba_Ca_mav Li_Ca_mav Mg_Ca_mav Mn_Ca_mav Sr_Ca_mav Zn_Ca_mav 
-    #>      0.20      0.50     15.00     20.00      0.75     20.00
+    #> Sr_Ca_mav 
+    #>  Tooth: 745.959 to 9965.319 
+    #>  Vert:  1612.884 to 10656.56 
+    #>  Normalized distance: 0.0210083
 
-``` r
-align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
-          spanT = 0.01, spanV = 0.01, n = 2000)
-```
+![](06a_dtw_prep_files/figure-gfm/vert-els-1.png)<!-- -->
 
     #> Ba_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
-    #>  Vert:  1497.678 to 8810.379 
-    #>  Normalized distance: 0.01351871
+    #>  Vert:  1503.439 to 8816.14 
+    #>  Normalized distance: 0.01439421
 
-![](06a_dtw_prep_files/figure-gfm/vert-test-1.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-els-2.png)<!-- -->
 
     #> Li_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
-    #>  Vert:  1129.019 to 10656.56 
-    #>  Normalized distance: 0.1051358
+    #>  Vert:  1123.259 to 10656.56 
+    #>  Normalized distance: 0.1037762
 
-![](06a_dtw_prep_files/figure-gfm/vert-test-2.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-els-3.png)<!-- -->
 
     #> Mg_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
-    #>  Vert:  1448.716 to 10627.75 
-    #>  Normalized distance: 0.05732624
+    #>  Vert:  1463.117 to 10630.63 
+    #>  Normalized distance: 0.05942035
 
-![](06a_dtw_prep_files/figure-gfm/vert-test-3.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-els-4.png)<!-- -->
 
     #> Mn_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1811.615 to 9173.278 
-    #>  Normalized distance: 0.1410794
+    #>  Normalized distance: 0.1421497
 
-![](06a_dtw_prep_files/figure-gfm/vert-test-4.png)<!-- -->
-
-    #> Sr_Ca_mav 
-    #>  Tooth: 745.959 to 9965.319 
-    #>  Vert:  1601.364 to 10656.56 
-    #>  Normalized distance: 0.01944887
-
-![](06a_dtw_prep_files/figure-gfm/vert-test-5.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-els-5.png)<!-- -->
 
     #> Zn_Ca_mav 
     #>  Tooth: 745.959 to 9965.319 
     #>  Vert:  1820.255 to 10656.56 
-    #>  Normalized distance: 0.2112427
+    #>  Normalized distance: 0.2150013
 
-![](06a_dtw_prep_files/figure-gfm/vert-test-6.png)<!-- -->
-
-    #> $Ba_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Li_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Mg_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Mn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Sr_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
-    #> 
-    #> $Zn_Ca_mav
-    #> DTW alignment object
-    #>  Alignment size (query x reference): 2000 x 2000
-    #>  Call: dtw(x = tSmooth, y = vSmooth, step.pattern = pattern, keep.internals = TRUE, 
-    #>  Call:     open.end = TRUE, open.begin = TRUE)
+![](06a_dtw_prep_files/figure-gfm/vert-els-6.png)<!-- -->
 
 ``` r
-# plots look EXCELLENT!
-```
-
-#### Test it now
-
-``` r
-finalv <- align_multi(SMA001VB_filt, SMA001V_filt,
-                      elements = mavs1,
-                      open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.02, spanV = 0.02,
-                      n = 2000)
+finalv <- align_multi(SMA001VB_filt, SMA001V_filt, elements = mavs1,
+                      open_begin = TRUE, open_end = TRUE, n = 2000)
 ```
 
     #> Tooth: 745.959 to 9965.319 
-    #>  Vert:  1451.596 to 10636.39 
-    #>  Normalized distance: 0.1307747
+    #>  Vert:  1422.795 to 10647.92 
+    #>  Normalized distance: 0.1266406
 
-![](06a_dtw_prep_files/figure-gfm/vert-grid-1.png)<!-- -->
+![](06a_dtw_prep_files/figure-gfm/vert-multi-1.png)<!-- -->
 
 ``` r
-# straight up... wow
-
 range(SMA001VB_filt$true_dist)
 ```
 
     #> [1]  745.959 9965.319
 
 ``` r
-range(SMA002T_filt$true_dist) # 4x; should match spans
+range(SMA001V_filt$true_dist)
 ```
 
-    #> [1]   155.529 42968.970
+    #> [1]   711.397 10656.560
 
 ## Save for 06b–06e
 
