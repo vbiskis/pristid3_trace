@@ -1,7 +1,7 @@
 06c.2 DTW anchor
 ================
 Nikki BIskis
-Rendered 27 Oct 2026 13:20
+Rendered 27 Oct 2026 21:07
 
 - [Where two elements agree: the
   anchor](#where-two-elements-agree-the-anchor)
@@ -52,12 +52,13 @@ per version (`anchor_pairs`, from the heat maps in 06c), and
 ranges are used as the anchor in 06d.
 
 ``` r
-anchor_pairs <- list(SMA001W1 = c("Mg_Ca_mav", "Sr_Ca_mav"),
-                     SMA001B1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001B2 = c("Mg_Ca_mav", "Ba_Ca_mav"),
-                     SMA002W1 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA002W2 = c("Zn_Ca_mav", "Sr_Ca_mav"))   
-agree_settings <- list(tol_um = 600, bin_um = 500, min_bins = 2, slope_range = c(1/25, 1), slope_tol = 3, slope_bins = 2)
-version_fish <- c(SMA001W1 = "SMA001W", SMA001B1 = "SMA001B", SMA001B2 = "SMA001B",
-                  SMA002W1 = "SMA002W", SMA002W2 = "SMA002W")
+anchor_pairs <- list(SMA001W1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001W2 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA001W3 = c("Zn_Ca_mav", "Sr_Ca_mav"),
+                     SMA001B1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001B2 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA001B3 = c("Zn_Ca_mav", "Sr_Ca_mav"),
+                     SMA002W1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA002W2 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA002W3 = c("Zn_Ca_mav", "Sr_Ca_mav"))   
+agree_settings <- list(tol_um = 750, bin_um = 500, min_bins = 2, slope_range = c(1/25, 1), slope_tol = 3, slope_bins = 3)
+version_fish <- c(SMA001W1 = "SMA001W", SMA001W2 = "SMA001W", SMA001W3 = "SMA001W",
+                  SMA001B1 = "SMA001B", SMA001B2 = "SMA001B", SMA001B3 = "SMA001B",
+                  SMA002W1 = "SMA002W", SMA002W2 = "SMA002W", SMA002W3 = "SMA002W")
 agree <- lapply(setNames(names(anchor_pairs), names(anchor_pairs)), function(n)
   do.call(pair_agreement, c(list(stacks[[version_fish[[n]]]], anchor_pairs[[n]][1], anchor_pairs[[n]][2]), agree_settings)))
 anchors      <- lapply(agree, function(a) if(is.null(a$stretch)) NULL else c(a$stretch$vert_from, a$stretch$vert_to))
@@ -70,11 +71,15 @@ knitr::kable(do.call(rbind, lapply(names(agree), function(n)
 
 | set | pair | tooth_from | tooth_to | vert_from | vert_to | start_from | start_to | median_diff_um |
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|
-| SMA001W1 | Mg + Sr | 37500 | 47500 | 5938 | 10248 | 37500 | 40500 | 637 |
-| SMA001B1 | Mg + Sr | 36000 | 42000 | 5646 | 9255 | 35500 | 36500 | 1200 |
-| SMA001B2 | Mg + Ba | 40000 | 41500 | 7224 | 8332 | 40000 | 41500 | 189 |
-| SMA002W1 | Mg + Ba | 20500 | 23500 | 4138 | 4984 | 20000 | 24000 | 320 |
-| SMA002W2 | Zn + Sr | 14500 | 23500 | 1241 | 4283 | 19500 | 24500 | 252 |
+| SMA001W1 | Mg + Sr | 37500 | 50500 | 5948 | 10517 | 37000 | 41000 | 697 |
+| SMA001W2 | Mg + Ba | NA | NA | NA | NA | NA | NA | NA |
+| SMA001W3 | Zn + Sr | 46500 | 48500 | 10079 | 10617 | 46000 | 49500 | 259 |
+| SMA001B1 | Mg + Sr | 36000 | 42000 | 5656 | 9264 | 35000 | 37000 | 1209 |
+| SMA001B2 | Mg + Ba | NA | NA | NA | NA | NA | NA | NA |
+| SMA001B3 | Zn + Sr | 36000 | 41500 | 5877 | 9476 | 38500 | 42500 | 628 |
+| SMA002W1 | Mg + Sr | 22500 | 23500 | 3993 | 4572 | 22500 | 24000 | 412 |
+| SMA002W2 | Mg + Ba | 20500 | 27000 | 4168 | 5479 | 19500 | 27000 | 404 |
+| SMA002W3 | Zn + Sr | 15000 | 23500 | 1363 | 4275 | 15000 | 24500 | 263 |
 
 - **pair**: the two elements compared.
 - **tooth_from, tooth_to**: the anchor’s stretch of tooth (µm); 06d’s
@@ -94,6 +99,18 @@ agree$SMA001W1$plot
 ![](06c2_dtw_anchor_files/figure-gfm/agree-sma001w-1.png)<!-- -->
 
 ``` r
+agree$SMA001W2$plot
+```
+
+![](06c2_dtw_anchor_files/figure-gfm/agree-sma001w-2.png)<!-- -->
+
+``` r
+agree$SMA001W3$plot
+```
+
+![](06c2_dtw_anchor_files/figure-gfm/agree-sma001w-3.png)<!-- -->
+
+``` r
 agree$SMA001B1$plot
 ```
 
@@ -104,6 +121,12 @@ agree$SMA001B2$plot
 ```
 
 ![](06c2_dtw_anchor_files/figure-gfm/agree-sma001b-2.png)<!-- -->
+
+``` r
+agree$SMA001B3$plot
+```
+
+![](06c2_dtw_anchor_files/figure-gfm/agree-sma001b-3.png)<!-- -->
 
 ``` r
 agree$SMA002W1$plot
@@ -118,9 +141,15 @@ agree$SMA002W2$plot
 ![](06c2_dtw_anchor_files/figure-gfm/agree-sma002w-2.png)<!-- -->
 
 ``` r
+agree$SMA002W3$plot
+```
+
+![](06c2_dtw_anchor_files/figure-gfm/agree-sma002w-3.png)<!-- -->
+
+``` r
 # each version: its fish's records and stack run, under the version's name, for 06d
 sets <- lapply(version_fish, function(f) fish[[f]])
-down <- lapply(version_fish, function(f) stacks[[f]][c("runs", "spanT", "spanV")])
+down <- lapply(version_fish, function(f) stacks[[f]]["runs"])
 save(sets, gap_um, down, anchor_pairs, agree_settings, anchors, anchor_tooth,
      file = 'data/output/dtw_cache/06c2.RData')
 ```

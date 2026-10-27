@@ -60,14 +60,14 @@ list2env(dfs, envir = .GlobalEnv)
 ```{r mavs}
 allmavs <- Reduce(union, list(elsg, plot_els_ba, plot_els_mg, 'In_Ca'))
 
-SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 11, gap_um = 350) # 43 um for all
-SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
-SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 31)
-SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 31)
+SMA001TB <- add_mavs(SMA001TB, ratio_columns = allmavs, window_size = 21, gap_um = 350) # 21 pts x 8.6 um = 181 um (~3.6 spots); verts 61 x 2.9 = 176 um (~3.5 spots)
+SMA001T <- add_mavs(SMA001T, ratio_columns = allmavs, window_size = 21, gap_um = 350)
+SMA001VB <- add_mavs(SMA001VB, ratio_columns = allmavs, window_size = 61)
+SMA001V <- add_mavs(SMA001V, ratio_columns = allmavs, window_size = 61)
 
-SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 11, gap_um = 350)
-SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 11, gap_um = 350)
-SMA002V <- add_mavs(SMA002V, ratio_columns = allmavs, window_size = 31)
+SMA002TB <- add_mavs(SMA002TB, ratio_columns = allmavs, window_size = 21, gap_um = 350)
+SMA002T <- add_mavs(SMA002T, ratio_columns = allmavs, window_size = 21, gap_um = 350)
+SMA002V <- add_mavs(SMA002V, ratio_columns = allmavs, window_size = 61)
 
 names(SMA001TB)
 ```
@@ -135,80 +135,56 @@ mavsb <- names(SMA001VB_filt)[43:47]
 mavsm <- names(SMA001VB_filt)[48:51]
 ```
 
-## Structure comparison
+## Replicate check
 
-But be systematic.
+The rolling medians above are the only smoothing in the DTW (06b–06f); there is no loess.
+Their width is tested in 06a2: breakpoints stop moving from about one spot width (50 µm),
+and 21 tooth points (181 µm) and 61 vertebra points (176 µm), about 3.5 spots each, are used.
 
-```{r grid-params}
-spans <- c(0.1, 0.075, 0.05, 0.025, 0.01, 0.0075, 0.005) #0.1 is high but
- # and 0.0025 beyond plotting capability
-ns <- c(500, 1000, 2000)
+As a check that this is enough, each pair of replicate transects of the same structure (SMA001's
+tooth sectioned for water and bleach; likewise its vertebra) is aligned. They record the same
+growth, so the warping path should be close to a straight line: **warp_r2** is how straight it is
+(R² of a straight line through the path, 1 = straight) and **warp_slope** its slope (1 = the
+same length); **norm_dist** is the DTW fit (lower = closer). In `align_els()`'s figures, "tooth"
+is the first replicate and "vertebra" the second.
+
+### Tooth
+
+```{r tooth-fit}
+rep_fit <- function(a, b) {
+  g <- align_grid(a, b, mavs2, spans = 0, ns = 2000)   # spans = 0: medians only
+  g$element <- sub("_mav$", "", g$element)
+  g[c("element", "norm_dist", "warp_slope", "warp_r2", "startA", "endA", "startB", "endB")]
+}
+knitr::kable(rep_fit(SMA001TB_filt, SMA001T_filt), digits = 2)
 ```
 
-### Tooth 1
-
-```{r tooth-test, fig.height = 7}
-tooth_comp <- align_grid(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, mavs2, spans, ns)
-# quick function for summarising these
-result <- select_spans(tooth_comp, n_fixed = 2000, r2_threshold = 0.9) # yes!
-span_vec <- setNames(result$chosen$span, result$chosen$element) # for ca ratios
-span_vec
-
-diff(range(SMA001TB_filt$true_dist, na.rm = TRUE)) # for comparison
-result$consensus_end - result$consensus_start # better!
-
-align_els(SMA001TB_filt, SMA001T_filt, elements = names(span_vec),
-          spanT = 0.02, spanV = 0.02, n = 2000) # all start around 20! nice work
-# median looks to be 0.025, importantly Mg is < 0.01
+```{r tooth-els, fig.height = 7}
+tooth_els <- align_els(SMA001TB_filt, SMA001T_filt, elements = mavs2, n = 2000)
 ```
 
-interesting: Mg/Sr have a better res (~0.01) than the rest which show a general pattern (~0.1)
-
-#### Test it now
-
-```{r tooth-grid}
-
+```{r tooth-multi}
 finalt <- align_multi(SMA001TB_filt |> filter(true_dist <= 50000), SMA001T_filt, elements = mavs1,
-                      open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.02, spanV = 0.02, n = 2000) # and this matches that number well too!
-
+                      open_begin = TRUE, open_end = TRUE, n = 2000)
 range(SMA001T_filt$true_dist)
 range(SMA001TB_filt$true_dist)
 ```
 
-### Vert 1
+### Vertebra
 
-But most importantly: our verts.
-
-```{r vert-test}
-vert_comp <- align_grid(SMA001V_filt, SMA001VB_filt, mavs2, spans, ns)
-result <- select_spans(vert_comp, n_fixed = 2000, r2_threshold = 0.9) # awesome!
-span_vecv <- setNames(result$chosen$span, result$chosen$element) # oh wow
-span_vecv 
-
-# how much wigglier are we talking
-span_vecv/span_vec # woah okay Li, Mg, Sr are all ~ 1:1
-
-align_els(SMA001VB_filt, SMA001V_filt, elements = names(span_vec),
-          spanT = 0.01, spanV = 0.01, n = 2000)
-# plots look EXCELLENT!
-
+```{r vert-fit}
+knitr::kable(rep_fit(SMA001VB_filt, SMA001V_filt), digits = 2)
 ```
 
-#### Test it now
+```{r vert-els, fig.height = 7}
+vert_els <- align_els(SMA001VB_filt, SMA001V_filt, elements = mavs2, n = 2000)
+```
 
-```{r vert-grid, fig.height = 7}
-
-finalv <- align_multi(SMA001VB_filt, SMA001V_filt,
-                      elements = mavs1,
-                      open_begin = TRUE, open_end = TRUE,
-                      spanT = 0.02, spanV = 0.02,
-                      n = 2000)
-
-# straight up... wow
-
+```{r vert-multi, fig.height = 7}
+finalv <- align_multi(SMA001VB_filt, SMA001V_filt, elements = mavs1,
+                      open_begin = TRUE, open_end = TRUE, n = 2000)
 range(SMA001VB_filt$true_dist)
-range(SMA002T_filt$true_dist) # 4x; should match spans
+range(SMA001V_filt$true_dist)
 ```
 
 ## Save for 06b–06e

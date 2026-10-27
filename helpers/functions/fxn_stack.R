@@ -14,7 +14,7 @@ library(patchwork)
 source('helpers/functions/fxn_gaps.R') # smoothing that stops at holes
 
 stack_alignments <- function(tooth, vert, elements,
-                             spanT = 0.04, spanV = 0.01, n = 500,
+                             spanT = 0, spanV = 0, n = 500,   # loess spans (0 = none)
                              n_steps = 5,            # cut positions tried at each end
                              max_trim = 0.35,        # trim up to this share of the tooth from each end
                              t_starts = NULL, t_ends = NULL,   # or give cut positions directly
@@ -194,8 +194,7 @@ stack_alignments <- function(tooth, vert, elements,
                              tooth_bin, vert_bin, nrow(s$cuts)))
   }
   
-  out <- list(runs = runs, groups = groups, ref_points = ref_tab, ref_raw = refs, paths = paths, cuts = cuts,
-              spanT = spanT, spanV = spanV)
+  out <- list(runs = runs, groups = groups, ref_points = ref_tab, ref_raw = refs, paths = paths, cuts = cuts)
   out$plot <- function(...) p_seg(...)
   out$heat <- function(...) p_heat(out, bands = bands, ...)
   plot <- match.arg(plot)

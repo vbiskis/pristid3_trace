@@ -31,8 +31,10 @@ in_gaps <- function(x, gaps){
 # at a hole edge the usual quadratic loess curls past the last points, so within half a
 # window of a hole it eases into a local linear fit; a piece shorter than one window
 # next to a hole is linear throughout (the record's own start and end are left as they were)
+# span = 0 returns y unchanged (no smoothing; plots with se = TRUE still smooth)
 # se = TRUE returns a data frame (fit, se, piece) for plotting ribbons
 smooth_gaps <- function(x, y, span, gap_um = 50, min_pts = 10, se = FALSE){
+  if(span <= 0 && !se) return(y)            # span 0: no loess, the values as they are
   ok <- which(is.finite(x) & is.finite(y))
   o  <- ok[order(x[ok])]; xs <- x[o]; ys <- y[o]; N <- length(xs)
   pc <- cumsum(c(1, diff(xs) > gap_um))

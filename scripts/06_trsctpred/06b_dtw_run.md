@@ -1,7 +1,7 @@
 06b · DTW run
 ================
 Nikki Biskis
-Rendered 26 Oct 2026 19:03
+Rendered 27 Oct 2026 21:03
 
 - [SMA001](#sma001)
   - [Multi: bleach](#multi-bleach)
@@ -69,48 +69,48 @@ SMA001TB_out$plots$Ca #(never gets to the base, tooth incomplete)
 align_els(SMA001T_filt,
           SMA001V_filt, # Ba gets confused
           elements = names(span_vec),
-          spanT = 0.02, spanV = 0.04, n = 2000)
+          n = 2000)
 ```
 
     #> Ba_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  7174.454 to 10656.56 
-    #>  Normalized distance: 0.6549069
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  7194.615 to 10647.92 
+    #>  Normalized distance: 0.6464673
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-1.png)<!-- -->
 
     #> Li_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  3548.345 to 4830.012 
-    #>  Normalized distance: 0.6130704
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  3528.184 to 4844.413 
+    #>  Normalized distance: 0.5758643
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-2.png)<!-- -->
 
     #> Mg_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  1975.783 to 10287.9 
-    #>  Normalized distance: 0.4175162
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  2237.877 to 10264.86 
+    #>  Normalized distance: 0.4157967
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-3.png)<!-- -->
 
     #> Mn_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  3821.96 to 8810.379 
-    #>  Normalized distance: 0.5088213
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  3824.839 to 8821.9 
+    #>  Normalized distance: 0.4780615
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-4.png)<!-- -->
 
     #> Sr_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  6990.125 to 10656.56 
-    #>  Normalized distance: 0.4544548
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  6915.241 to 10656.56 
+    #>  Normalized distance: 0.4927315
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-5.png)<!-- -->
 
     #> Zn_Ca_mav 
-    #>  Tooth: 820.842 to 54875.49 
-    #>  Vert:  3585.787 to 10538.47 
-    #>  Normalized distance: 0.4250766
+    #>  Tooth: 864.045 to 54832.29 
+    #>  Vert:  3582.907 to 10656.56 
+    #>  Normalized distance: 0.3904342
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-w-6.png)<!-- -->
 
@@ -155,48 +155,48 @@ align_els(SMA001T_filt,
 align_els(SMA001TB_filt,
           SMA001VB_filt,
           elements = names(span_vec),
-          spanT = 0.02, spanV = 0.04, n = 2000)
+          n = 2000)
 ```
 
     #> Ba_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  921.648 to 2070.828 
-    #>  Normalized distance: 0.6321098
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  7839.769 to 9956.679 
+    #>  Normalized distance: 0.6214233
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-1.png)<!-- -->
 
     #> Li_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  2747.664 to 4444.072 
-    #>  Normalized distance: 0.4406668
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  2756.304 to 4429.671 
+    #>  Normalized distance: 0.4318772
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-2.png)<!-- -->
 
     #> Mg_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  3813.319 to 9804.031 
-    #>  Normalized distance: 0.3342614
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  3862.281 to 9798.271 
+    #>  Normalized distance: 0.3306297
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-3.png)<!-- -->
 
     #> Mn_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  4441.192 to 9965.319 
-    #>  Normalized distance: 0.3662405
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4395.109 to 9965.319 
+    #>  Normalized distance: 0.3705884
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-4.png)<!-- -->
 
     #> Sr_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  1298.948 to 6889.319 
-    #>  Normalized distance: 0.4536682
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  1336.39 to 6512.02 
+    #>  Normalized distance: 0.4826424
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-5.png)<!-- -->
 
     #> Zn_Ca_mav 
-    #>  Tooth: 12001.59 to 52879.56 
-    #>  Vert:  5331.158 to 9651.383 
-    #>  Normalized distance: 0.3415761
+    #>  Tooth: 12001.59 to 52836.35 
+    #>  Vert:  5227.472 to 9636.982 
+    #>  Normalized distance: 0.3591171
 
 ![](06b_dtw_run_files/figure-gfm/sma001-els-b-6.png)<!-- -->
 
@@ -244,66 +244,75 @@ align_els(SMA001TB_filt,
 
 ``` r
 mult1b2 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                      elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
-                      spanT = 0.02, spanV = 0.04,
+                      elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
                       n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 12001.59 to 52879.56 
-    #>  Vert:  5152.588 to 6434.256 
-    #>  Normalized distance: 0.7031147
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4109.975 to 9089.754 
+    #>  Normalized distance: 0.6431826
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-b-1.png)<!-- -->
 
 ``` r
 mult1b2.1 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                        elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                        spanT = 0.02, spanV = 0.04,
+                        elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
                         n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 12001.59 to 52879.56 
-    #>  Vert:  4101.334 to 9083.993 
-    #>  Normalized distance: 0.6313461
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  3865.162 to 9832.833 
+    #>  Normalized distance: 0.594338
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-b-2.png)<!-- -->
 
 ``` r
 mult1b3 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Mn_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
+                       elements = c('Mg_Ca_mav', 'Zn_Ca_mav', "Mn_Ca_mav"),
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 12001.59 to 52879.56 
-    #>  Vert:  4383.588 to 9092.634 
-    #>  Normalized distance: 0.6614065
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4553.517 to 9654.263 
+    #>  Normalized distance: 0.5902783
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-b-3.png)<!-- -->
 
 ``` r
-mult1b4 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                       elements = mavs1, spanT = 0.02, spanV = 0.04,
+mult1b3.1 <- align_multi(SMA001TB_filt, SMA001VB_filt,
+                       elements = c('Mg_Ca_mav', 'Ba_Ca_mav', "Sr_Ca_mav"),
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 12001.59 to 52879.56 
-    #>  Vert:  3482.102 to 9965.319 
-    #>  Normalized distance: 0.8378342
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4109.975 to 9026.39 
+    #>  Normalized distance: 0.7182992
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-b-4.png)<!-- -->
 
 ``` r
-mult1b6 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                       elements = mavs2, spanT = 0.02, spanV = 0.04,
+mult1b4 <- align_multi(SMA001TB_filt, SMA001VB_filt,
+                       elements = mavs1,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 12001.59 to 52879.56 
-    #>  Vert:  4115.735 to 9472.814 
-    #>  Normalized distance: 0.8311513
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  3516.664 to 9927.877 
+    #>  Normalized distance: 0.8269997
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-b-5.png)<!-- -->
+
+``` r
+mult1b6 <- align_multi(SMA001TB_filt, SMA001VB_filt,
+                       elements = mavs2,
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+```
+
+    #> Tooth: 12001.59 to 52836.35 
+    #>  Vert:  4089.813 to 9516.016 
+    #>  Normalized distance: 0.8253933
+
+![](06b_dtw_run_files/figure-gfm/sma001-multi-b-6.png)<!-- -->
 
 ``` r
 # ahhh that's interesting!
@@ -313,118 +322,137 @@ mult1b6 <- align_multi(SMA001TB_filt, SMA001VB_filt,
 
 ``` r
 mult1h2 <- align_multi(SMA001T_filt, SMA001V_filt,
-                      elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
-                      spanT = 0.02, spanV = 0.04,
+                      elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                       open_end = TRUE) # same result for both verts
 ```
 
-    #> Tooth: 820.842 to 54875.49 
-    #>  Vert:  6946.922 to 10656.56 
-    #>  Normalized distance: 0.6512319
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  740.199 to 1898.019 
+    #>  Normalized distance: 0.7552389
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-w-1.png)<!-- -->
 
 ``` r
 mult1h2.1 <- align_multi(SMA001T_filt, SMA001V_filt,
-                         elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                         spanT = 0.02, spanV = 0.04,
+                         elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
                          n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 820.842 to 54875.49 
-    #>  Vert:  711.397 to 1921.06 
-    #>  Normalized distance: 0.744051
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  3577.147 to 9006.23 
+    #>  Normalized distance: 0.6983228
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-w-2.png)<!-- -->
 
 ``` r
-mult1h3 <- align_multi(SMA001T_filt, SMA001V_filt,
-                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Li_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
-                       n = 6000, open_end = TRUE, open_begin = TRUE)
+mult1h2.2 <- align_multi(SMA001T_filt, SMA001V_filt,
+                         elements = c('Sr_Ca_mav', 'Zn_Ca_mav'),
+                         n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 820.842 to 54875.49 
-    #>  Vert:  3597.308 to 4847.293 
-    #>  Normalized distance: 0.923183
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  6961.323 to 10656.56 
+    #>  Normalized distance: 0.6879814
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-w-3.png)<!-- -->
 
 ``` r
-mult1h4 <- align_multi(SMA001T_filt, SMA001V_filt,
-                      elements = mavs1,
-                      spanT = 0.02, spanV = 0.04,
-                      n = 6000, open_begin = TRUE,
-                      open_end = TRUE) # but this one suggests longer
+mult1h3 <- align_multi(SMA001T_filt, SMA001V_filt,
+                       elements = c('Mg_Ca_mav', 'Mn_Ca_mav', "Zn_Ca_mav"),
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
 ```
 
-    #> Tooth: 820.842 to 54875.49 
-    #>  Vert:  3600.188 to 4847.293 
-    #>  Normalized distance: 0.9389438
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  3577.147 to 9089.753 
+    #>  Normalized distance: 0.5990763
 
 ![](06b_dtw_run_files/figure-gfm/sma001-multi-w-4.png)<!-- -->
 
 ``` r
+mult1h3.1 <- align_multi(SMA001T_filt, SMA001V_filt,
+                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Ba_Ca_mav"),
+                       n = 6000, open_end = TRUE, open_begin = TRUE)
+```
+
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  734.439 to 1886.499 
+    #>  Normalized distance: 0.7937674
+
+![](06b_dtw_run_files/figure-gfm/sma001-multi-w-5.png)<!-- -->
+
+``` r
+mult1h4 <- align_multi(SMA001T_filt, SMA001V_filt,
+                      elements = mavs1,
+                      n = 6000, open_begin = TRUE,
+                      open_end = TRUE) # but this one suggests longer
+```
+
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  3660.671 to 5146.828 
+    #>  Normalized distance: 0.9322837
+
+![](06b_dtw_run_files/figure-gfm/sma001-multi-w-6.png)<!-- -->
+
+``` r
 mult1h6 <- align_multi(SMA001T_filt, SMA001V_filt,
                       elements = mavs2,
-                      spanT = 0.02, spanV = 0.04,
                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                       open_end = TRUE)
 ```
 
-    #> Tooth: 820.842 to 54875.49 
-    #>  Vert:  3600.188 to 5077.705 
-    #>  Normalized distance: 0.8775092
+    #> Tooth: 864.045 to 54832.29 
+    #>  Vert:  3660.671 to 5086.346 
+    #>  Normalized distance: 0.8600364
 
-![](06b_dtw_run_files/figure-gfm/sma001-multi-w-5.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma001-multi-w-7.png)<!-- -->
 
 ## SMA002
 
 ``` r
 align_els(SMA002T_filt, SMA002V_filt, elements = mavs2,
-          spanT = 0.02, spanV = 0.04, n = 4000)
+          n = 4000)
 ```
 
     #> Sr_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  7122.611 to 7931.933 
-    #>  Normalized distance: 0.6173225
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  7131.251 to 7946.334 
+    #>  Normalized distance: 0.6140934
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-1.png)<!-- -->
 
     #> Ba_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  1857.697 to 5809.263 
-    #>  Normalized distance: 0.2596527
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  1932.581 to 5771.821 
+    #>  Normalized distance: 0.2652901
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-2.png)<!-- -->
 
     #> Li_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  5437.724 to 7473.989 
-    #>  Normalized distance: 0.4044115
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  5578.851 to 7943.454 
+    #>  Normalized distance: 0.3907613
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-3.png)<!-- -->
 
     #> Mg_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  3614.588 to 5884.147 
-    #>  Normalized distance: 0.3622041
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  3640.51 to 5884.147 
+    #>  Normalized distance: 0.3687739
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-4.png)<!-- -->
 
     #> Mn_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  336.978 to 1935.461 
-    #>  Normalized distance: 0.3649337
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  360.019 to 1883.618 
+    #>  Normalized distance: 0.3438469
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-5.png)<!-- -->
 
     #> Zn_Ca_mav 
-    #>  Tooth: 112.326 to 43012.17 
-    #>  Vert:  858.285 to 7462.469 
-    #>  Normalized distance: 0.3516778
+    #>  Tooth: 155.529 to 42968.97 
+    #>  Vert:  843.884 to 7329.982 
+    #>  Normalized distance: 0.3075538
 
 ![](06b_dtw_run_files/figure-gfm/sma002-els-6.png)<!-- -->
 
@@ -468,15 +496,14 @@ align_els(SMA002T_filt, SMA002V_filt, elements = mavs2,
 
 ``` r
 mult2 <- align_multi(SMA002T_filt, SMA002V_filt,
-                       elements = c('Ba_Ca_mav', 'Sr_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
+                       elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE) #hmm!
 ```
 
-    #> Tooth: 112.326 to 43012.17 
-    #>  Vert:  3965.967 to 4351.907 
-    #>  Normalized distance: 0.7793199
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  3617.468 to 5846.705 
+    #>  Normalized distance: 0.4604932
 
 ![](06b_dtw_run_files/figure-gfm/sma002-multi-1.png)<!-- -->
 
@@ -485,56 +512,66 @@ mult2 <- align_multi(SMA002T_filt, SMA002V_filt,
 
 mult2.1 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE)
 ```
 
-    #> Tooth: 112.326 to 43012.17 
-    #>  Vert:  3954.446 to 4343.266 
-    #>  Normalized distance: 0.7465818
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  3934.285 to 4349.027 
+    #>  Normalized distance: 0.7483158
 
 ![](06b_dtw_run_files/figure-gfm/sma002-multi-2.png)<!-- -->
 
 ``` r
 mult3 <- align_multi(SMA002T_filt, SMA002V_filt,
-                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav', 'Mn_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
+                       elements = c('Mg_Ca_mav', 'Zn_Ca_mav', 'Mn_Ca_mav'),
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE)
 ```
 
-    #> Tooth: 112.326 to 43012.17 
-    #>  Vert:  3603.067 to 4775.289 
-    #>  Normalized distance: 0.7678079
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  2220.596 to 5771.821 
+    #>  Normalized distance: 0.5589661
 
 ![](06b_dtw_run_files/figure-gfm/sma002-multi-3.png)<!-- -->
 
 ``` r
-mult4 <- align_multi(SMA002T_filt, SMA002V_filt,
-                    elements =  mavs1, spanT = 0.02, spanV = 0.04,
-                    n = 6000, open_begin = TRUE, open_end = TRUE)
+mult3.1 <- align_multi(SMA002T_filt, SMA002V_filt,
+                       elements = c('Mg_Ca_mav', 'Ba_Ca_mav', 'Sr_Ca_mav'),
+                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
+                       open_end = TRUE)
 ```
 
-    #> Tooth: 112.326 to 43012.17 
-    #>  Vert:  3942.926 to 4127.255 
-    #>  Normalized distance: 0.9314739
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  3934.285 to 4389.349 
+    #>  Normalized distance: 0.7531597
 
 ![](06b_dtw_run_files/figure-gfm/sma002-multi-4.png)<!-- -->
 
 ``` r
+mult4 <- align_multi(SMA002T_filt, SMA002V_filt,
+                    elements =  mavs1,
+                    n = 6000, open_begin = TRUE, open_end = TRUE)
+```
+
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  3931.405 to 4256.862 
+    #>  Normalized distance: 0.9261502
+
+![](06b_dtw_run_files/figure-gfm/sma002-multi-5.png)<!-- -->
+
+``` r
 mult6 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements =  mavs2,
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000,  open_begin = TRUE,
                        open_end = TRUE)
 ```
 
-    #> Tooth: 112.326 to 43012.17 
-    #>  Vert:  3911.244 to 4219.42 
-    #>  Normalized distance: 0.9237344
+    #> Tooth: 155.529 to 42968.97 
+    #>  Vert:  3931.405 to 4256.862 
+    #>  Normalized distance: 0.8945084
 
-![](06b_dtw_run_files/figure-gfm/sma002-multi-5.png)<!-- -->
+![](06b_dtw_run_files/figure-gfm/sma002-multi-6.png)<!-- -->
 
 ``` r
 # oh woah these all look like they match - not long though and they are def scrunched.

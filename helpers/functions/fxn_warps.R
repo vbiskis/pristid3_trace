@@ -24,7 +24,7 @@ library(patchwork)
 source('helpers/functions/fxn_gaps.R') # smoothing that stops at holes
 
 # shared prep: sort, crop, smooth vert, and a tooth smoother that matches the vert
-prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10, gap_um = 50){
+prep_records <- function(datT, datV, elements, spanV = 0, tooth_max = Inf, min_pts = 10, gap_um = 50){
   datT <- datT[order(datT$true_dist), ]
   datT <- datT[datT$true_dist <= tooth_max, ]
   datV <- datV[order(datV$true_dist), ]
@@ -42,10 +42,10 @@ prep_records <- function(datT, datV, elements, spanV, tooth_max, min_pts = 10, g
   tooth_at_ratio <- function(r){
     key <- format(r)
     if(!is.null(cache[[key]])) return(cache[[key]])
-    sp <- setNames(pmin(1, pmax(span_min, spanV * r * LV / LT)), elements)  # pmin/pmax drop name
+    sp <- setNames(pmin(1, pmax(span_min * (spanV > 0), spanV * r * LV / LT)), elements)  # pmin/pmax drop name
     z  <- scale(sapply(elements, function(el) smooth_gaps(xT, datT[[el]], sp[[el]], gap_um)))
     colnames(z) <- elements
-    out <- list(z = z, spanT = sp, clamped = any(spanV * r * LV / LT < span_min))
+    out <- list(z = z, spanT = sp, clamped = any(spanV > 0 & spanV * r * LV / LT < span_min))
     cache[[key]] <<- out
     out
   }
@@ -60,7 +60,8 @@ at_pts <- function(z, x, xout, elements){
 }
 
 match_window <- function(datT, datV, elements, v_from, win = 1000,
-                         spanV, ratio_range = c(1, 15),
+                         spanV = 0,                   # loess span on the vert (0 = none)
+                         ratio_range = c(1, 15),
                          n_ratios     = 8,
                          tooth_search = c(-Inf, Inf), # only search this part of the tooth
                          start_search = c(-Inf, Inf), # and only pieces starting in this range
@@ -206,9 +207,9 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
       { if(is.finite(zoom)) coord_cartesian(xlim = c(v_from - zoom * win, v_to + zoom * win)) } +
       theme_bw() +
       labs(x = "Vertebra position (um)", y = "z-score",
-           caption = sprintf("Tooth %.0f-%.0f um (red) relative to vertebra %.0f-%.0f um (black)\nGrey = element warp. Ratio = %.1f (tooth span %.4f). Fit %.2f SD",
+           caption = sprintf("Tooth %.0f-%.0f um (red) relative to vertebra %.0f-%.0f um (black)\nGrey = element warp. Ratio = %.1f. Fit %.2f SD",
                              b$tooth_start, b$tooth_end, v_from, v_to,
-                             b$ratio, mean(tr$spanT), b$cost))
+                             b$ratio, b$cost))
     # each element's warp path vs an even pace
     paths <- do.call(rbind, lapply(seq_along(elements), function(e){
       a <- align1(Vw[, e, drop = FALSE], Tw[, e, drop = FALSE])

@@ -1,25 +1,29 @@
 06d · DTW warp up
 ================
 Nikki Biskis
-Rendered 27 Oct 2026 11:15
+Rendered 27 Oct 2026 21:07
 
 - [Settings](#settings)
 - [1. Build from the anchor](#1-build-from-the-anchor)
 - [2. All six elements over the built-out
   stretch](#2-all-six-elements-over-the-built-out-stretch)
   - [SMA001W1](#sma001w1)
+  - [SMA001W3](#sma001w3)
   - [SMA001B1](#sma001b1)
-  - [SMA001B2](#sma001b2)
+  - [SMA001B3](#sma001b3)
   - [SMA002W1](#sma002w1)
   - [SMA002W2](#sma002w2)
+  - [SMA002W3](#sma002w3)
 - [3. Random order, within the built-out
   stretch](#3-random-order-within-the-built-out-stretch)
 - [4. Build vs random](#4-build-vs-random)
   - [SMA001W1](#sma001w1-1)
+  - [SMA001W3](#sma001w3-1)
   - [SMA001B1](#sma001b1-1)
-  - [SMA001B2](#sma001b2-1)
+  - [SMA001B3](#sma001b3-1)
   - [SMA002W1](#sma002w1-1)
   - [SMA002W2](#sma002w2-1)
+  - [SMA002W3](#sma002w3-1)
 
 - **Paper:** The potential of elemental analysis in determining origin
   of sawfish rostra
@@ -30,30 +34,36 @@ Rendered 27 Oct 2026 11:15
 
 The original version is in `original/06c_dtw_warpup.R`. For each version
 (06c), with 500 µm vertebra windows every 200 µm, each allowed to match
-0.5–8 µm of tooth per µm of vertebra (16 steps):
+1–12 µm of tooth per µm of vertebra (15 steps, tooth starts every 200
+µm). Each window picks its own growth ratio, since it’s expected to
+change along the vertebra (early in life, a µm of vertebra probably
+relates to more tooth than later). Both records use only 06a’s rolling
+medians (no further smoothing):
 
-1.  **Build from the anchor**: the windows inside the anchor (the
-    vertebra range where the version’s anchor elements map the same
-    tooth to the same place, 06c) are matched freely, then built out one
-    window at a time: forward, each window forced later on the tooth
-    than the last, and backward, each forced earlier. Uses the anchor
-    elements. Each direction stops when there’s no tooth left to match,
-    or when the tooth stops moving while the vertebra moves on (a flat
-    path: nothing happening, not an alignment).
-2.  **All six elements over the built-out stretch**: one
-    `match_window()` over the whole stretch the build reached, with its
-    figure.
+1.  **Build from the anchor**: the first window of the anchor (where the
+    version’s anchor elements start out close and keep a steady,
+    parallel slope, 06c) is matched with its tooth piece. From there the
+    build goes one forward, each piece starting later on the tooth than
+    the last, and backward, each starting earlier, so it can only add to
+    the alignment.
+
+    Each direction stops when there’s no tooth left, or where the tooth
+    doesn’t align to the vertebra at all: near flat (ratio 100 per 500)
+    or near vertical (5000 µm per 100 µm).
+
+2.  **All elements over the built-out stretch**: one `match_window()`
+    over the whole stretch the build reached + its figure.
+
 3.  **Random order, within that stretch**: the same windows, each free
-    to match anywhere on the tooth, with the anchor elements. Windows
-    outside the built-out stretch are skipped.
-4.  **Build vs random**: where the two put each window’s tooth piece.
-    Where they overlap by at least half (of the shorter piece), the
-    match doesn’t depend on being built in order.
+    to match anywhere on the tooth.
+
+4.  **Build vs random**: Where they overlap by at least half (of the
+    shorter piece).
 
 Versions without an anchor, or whose build fails, are skipped and
-listed, so the rest still run. Starts from 06a and 06c
-(`data/output/dtw_cache/06a.RData`, `06c.RData`); saves `06d.RData` for
-06f and 06g. Spans are each version’s spans in 06c.
+listed, so the rest still run. Starts from 06a and 06c2
+(`data/output/dtw_cache/06a.RData`, `06c2.RData`); saves `06d.RData` for
+06f and 06g.
 
 ``` r
 source('helpers/microHelp.R')
@@ -62,32 +72,33 @@ source('helpers/functions/fxn_dtw.R')
 source('helpers/functions/fxn_warps.R')
 library(furrr)
 load('data/output/dtw_cache/06a.RData') # objects from 06a
-load('data/output/dtw_cache/06c.RData') # sets, gap_um, down (spans), anchor_pairs, anchors from 06c
+load('data/output/dtw_cache/06c2.RData') # sets, gap_um, down (06c runs), anchor_pairs, anchors, anchor_tooth from 06c2
 ```
 
 ## Settings
 
 ``` r
-up_settings <- list(win = 500, step = 200, ratio_range = c(0.5, 8), n_ratios = 16,
-                    overlap = 0.5,           # build and random agree if their tooth pieces overlap by this share
-                    final_elements = mavs2,  # step 2 uses all six
-                    stall_windows = 3)       # stop building once the tooth stops moving for this many windows
-# the tooth has to move at least this much per window step (the slowest growth ratio allowed)
-up_settings$min_advance <- up_settings$step * up_settings$ratio_range[1]
+up_settings <- list(win = 750, step = 200, ratio_range = c(1, 8), n_ratios = 16,
+                    start_step = 200,        # um between candidate tooth starts (match_window's default is 100)
+                    overlap = 0.45,           # build and random agree if their tooth pieces overlap by this share
+                    final_elements = c("Mg_Ca_mav", "Sr_Ca_mav", "Ba_Ca_mav", "Mn_Ca_mav", "Zn_Ca_mav"),  # step 2 uses all but Li bc bleh
+                    # stop building where the tooth doesn't align to the vertebra at all:
+                    flat  = c(vert = 750, tooth = 250),    # near flat: tooth moves less than this over this much vertebra (R < .5)
+                    steep = c(vert = 500, tooth = 12500))   # near vertical: tooth moves more than this over this much vertebra
 
 # to set an anchor by hand, e.g.: anchors$SMA002W1 <- c(5000, 6000)
 ok <- sapply(names(sets), function(n) length(anchors[[n]]) == 2)
-skipped <- data.frame(version = names(sets)[!ok], reason = rep("no anchor from 06c", sum(!ok)))
+skipped <- data.frame(version = names(sets)[!ok], reason = rep("no anchor from 06c2", sum(!ok)))
 sets <- sets[ok]
 
-# one window of one version, with its anchor elements (each record smoothed once, then reused)
+# one window of one version, with its anchor elements (each record prepared once, then reused)
 preps <- lapply(setNames(names(sets), names(sets)), function(n)
-  prep_records(sets[[n]]$tooth, sets[[n]]$vert, anchor_pairs[[n]], down[[n]]$spanV, Inf, gap_um = gap_um))
-mw <- function(n, v, search)
+  prep_records(sets[[n]]$tooth, sets[[n]]$vert, anchor_pairs[[n]], gap_um = gap_um))
+# start = where the tooth piece may start (default: anywhere)
+mw <- function(n, v, start = c(-Inf, Inf))
   cbind(set = n, match_window(sets[[n]]$tooth, sets[[n]]$vert, anchor_pairs[[n]], v_from = v, win = up_settings$win,
-                              spanV = down[[n]]$spanV, ratio_range = up_settings$ratio_range,
-                              n_ratios = up_settings$n_ratios, tooth_search = search, gap_um = gap_um,
-                              prep = preps[[n]]))
+                              ratio_range = up_settings$ratio_range, n_ratios = up_settings$n_ratios, start_search = start, gap_um = gap_um,
+                              prep = preps[[n]], start_step = up_settings$start_step))
 starts <- function(n) seq(min(sets[[n]]$vert$true_dist), max(sets[[n]]$vert$true_dist) - up_settings$win,
                           by = up_settings$step)
 ```
@@ -97,33 +108,37 @@ starts <- function(n) seq(min(sets[[n]]$vert$true_dist), max(sets[[n]]$vert$true
 ``` r
 build <- function(n){
   v_all <- starts(n); a_rng <- anchors[[n]]
-  seeds <- v_all[v_all >= a_rng[1] & v_all + up_settings$win <= a_rng[2]]
-  if(!length(seeds)) seeds <- v_all[which.min(abs(v_all + up_settings$win / 2 - mean(a_rng)))]  # anchor narrower than a window
-  a <- do.call(rbind, lapply(seeds, mw, n = n, search = c(-Inf, Inf)))   # anchor windows: anywhere on the tooth
-  a <- a[!is.na(a$tooth_start), ]
-  if(!nrow(a)) stop("no match inside the anchor")
-  a1 <- a[1, ]; aN <- a[nrow(a), ]
-  # build one way from the anchor, one window at a time; stop when no tooth is left to match,
-  # or when the tooth stops moving (less than min_advance per window, stall_windows in a row):
-  # the vertebra moving on with no tooth is nothing happening, not an alignment
+  # seed: the window nearest the anchor's start, its tooth piece starting in the anchor's tooth stretch
+  v0 <- v_all[which.min(abs(v_all - a_rng[1]))]
+  a  <- mw(n, v0, anchor_tooth[[n]])
+  if(is.na(a$tooth_start)) stop("no match inside the anchor")
+  # build one way from the seed, one window at a time, each piece starting on from the last
+  # (never back). Stop when no tooth is left to match, or where the path goes near flat or near
+  # vertical: how far the tooth moved since the latest window at least flat/steep "vert" um back.
+  # The windows past that one are dropped
   build_dir <- function(vs, edge, forward){
-    out <- list(); stall <- 0; why <- "end of vertebra"
+    out <- list(); hist <- data.frame(v = v0, t = edge); why <- "end of vertebra"   # hist row 1 = the seed
     for(v in vs){
       r <- mw(n, v, if(forward) c(edge, Inf) else c(-Inf, edge))
       if(is.na(r$tooth_start)){ why <- "no tooth left"; break }
-      moved <- if(forward) r$tooth_start - edge else edge - r$tooth_end
-      stall <- if(moved < up_settings$min_advance) stall + 1 else 0
       out[[length(out) + 1]] <- r
-      if(stall >= up_settings$stall_windows){ out <- head(out, -stall); why <- "tooth stopped moving"; break }
-      edge <- if(forward) r$tooth_start else r$tooth_end
+      hist <- rbind(hist, data.frame(v = v, t = r$tooth_start))
+      back <- function(um) max(c(0, which(abs(v - hist$v) >= um)))   # 0 = not that far from the seed yet
+      j <- back(up_settings$flat[["vert"]])
+      if(j && abs(r$tooth_start - hist$t[j]) < up_settings$flat[["tooth"]]){
+        out <- head(out, j - 1); why <- "near flat"; break }
+      j <- back(up_settings$steep[["vert"]])
+      if(j && abs(r$tooth_start - hist$t[j]) > up_settings$steep[["tooth"]]){
+        out <- head(out, j - 1); why <- "near vertical"; break }
+      edge <- r$tooth_start
     }
     list(rows = do.call(rbind, out), why = why)
   }
-  f <- build_dir(v_all[v_all > aN$v_from], aN$tooth_start, TRUE)          # later vert, later tooth
-  k <- build_dir(rev(v_all[v_all < a1$v_from]), a1$tooth_end, FALSE)      # earlier vert, earlier tooth
-  b <- rbind(if(!is.null(k$rows)) cbind(k$rows, stage = "backward"), cbind(a, stage = "anchor"),
-             if(!is.null(f$rows)) cbind(f$rows, stage = "forward"))
+  f <- build_dir(v_all[v_all > v0], a$tooth_start, TRUE)          # later vert, later tooth
+  k <- build_dir(rev(v_all[v_all < v0]), a$tooth_start, FALSE)    # earlier vert, earlier tooth
+  b <- rbind(k$rows, a, f$rows)
   b <- b[order(b$v_from), ]
+  b$stage <- ifelse(b$v_from >= a_rng[1] & b$v_from <= a_rng[2], "anchor", ifelse(b$v_from < v0, "backward", "forward"))
   attr(b, "stopped") <- c(forward = f$why, backward = k$why)
   b
 }
@@ -154,7 +169,10 @@ rownames(built) <- NULL
 if(nrow(skipped)) knitr::kable(skipped, row.names = FALSE) else cat("No versions skipped.")
 ```
 
-    #> No versions skipped.
+| version  | reason              |
+|:---------|:--------------------|
+| SMA001W2 | no anchor from 06c2 |
+| SMA001B2 | no anchor from 06c2 |
 
 ``` r
 knitr::kable(do.call(rbind, lapply(split(built, built$set), function(b) data.frame(
@@ -168,21 +186,24 @@ knitr::kable(do.call(rbind, lapply(split(built, built$set), function(b) data.fra
 
 | version | elements | anchor | windows | vert | tooth | backward_stopped | forward_stopped |
 |:---|:---|:---|---:|:---|:---|:---|:---|
-| SMA001B1 | Mg + Sr | 5582-5937 | 23 | 4346-9246 | 12002-52802 | tooth stopped moving | tooth stopped moving |
-| SMA001B2 | Mg + Ba | 6652-8110 | 35 | 2546-9846 | 12502-51552 | tooth stopped moving | end of vertebra |
-| SMA001W1 | Mg + Sr | 5993-6894 | 24 | 5511-10611 | 10521-54721 | tooth stopped moving | end of vertebra |
-| SMA002W1 | Mg + Ba | 3989-5342 | 33 | 334-7234 | 112-37262 | end of vertebra | tooth stopped moving |
-| SMA002W2 | Zn + Sr | 2949-4477 | 36 | 334-7834 | 112-40712 | end of vertebra | end of vertebra |
+| SMA001B1 | Mg + Sr | 5656-9264 | 11 | 5546-8296 | 34602-48450 | near vertical | near flat |
+| SMA001B3 | Zn + Sr | 5877-9476 | 18 | 5746-9896 | 34602-46250 | near vertical | end of vertebra |
+| SMA001W1 | Mg + Sr | 5948-10517 | 13 | 5911-9061 | 40300-50200 | near vertical | near flat |
+| SMA001W3 | Zn + Sr | 10079-10617 | 1 | 9711-10461 | 46900-51150 | near vertical | end of vertebra |
+| SMA002W1 | Mg + Sr | 3993-4572 | 29 | 1534-7884 | 4956-38950 | near flat | end of vertebra |
+| SMA002W2 | Mg + Ba | 4168-5479 | 8 | 4134-6284 | 26300-41150 | near vertical | near flat |
+| SMA002W3 | Zn + Sr | 1363-4275 | 6 | 334-2084 | 1556-16900 | end of vertebra | near vertical |
 
 - **elements**: the anchor elements used to build; **anchor**: the
-  anchor (vertebra µm).
+  anchor (vertebra µm); its windows are built in order like the rest.
 - **windows, vert, tooth**: matched windows, and the stretch of vertebra
   and tooth the build reached (µm).
 - **backward_stopped, forward_stopped**: why the build stopped in each
-  direction: the end of the vertebra; no tooth left to match; or the
-  tooth stopped moving (it moved less than `min_advance` µm per window,
-  the slowest growth ratio allowed × the window step, for
-  `stall_windows` windows in a row; those windows are dropped).
+  direction: the end of the vertebra; no tooth left to match; near flat
+  (the tooth moved less than `flat["tooth"]` µm over `flat["vert"]` µm
+  of vertebra); or near vertical (more than `steep["tooth"]` µm over
+  `steep["vert"]` µm). The windows in a flat or vertical stretch are
+  dropped.
 
 ## 2. All six elements over the built-out stretch
 
@@ -193,7 +214,7 @@ for(n in names(up)){
   cat("\n\n###", n, "\n\n")
   final[[n]] <- cbind(set = n, match_window(sets[[n]]$tooth, sets[[n]]$vert, up_settings$final_elements,
                                             v_from = min(b$v_from), win = max(b$v_to) - min(b$v_from),
-                                            spanV = down[[n]]$spanV, ratio_range = up_settings$ratio_range,
+                                            ratio_range = up_settings$ratio_range,
                                             n_ratios = 24, gap_um = gap_um, plot = TRUE, bands = sets[[n]]$bands))
 }
 ```
@@ -202,21 +223,29 @@ for(n in names(up)){
 
 ![](06d_dtw_warpup_files/figure-gfm/final-1.png)<!-- -->
 
-### SMA001B1
+### SMA001W3
 
 ![](06d_dtw_warpup_files/figure-gfm/final-2.png)<!-- -->
 
-### SMA001B2
+### SMA001B1
 
 ![](06d_dtw_warpup_files/figure-gfm/final-3.png)<!-- -->
 
-### SMA002W1
+### SMA001B3
 
 ![](06d_dtw_warpup_files/figure-gfm/final-4.png)<!-- -->
 
-### SMA002W2
+### SMA002W1
 
 ![](06d_dtw_warpup_files/figure-gfm/final-5.png)<!-- -->
+
+### SMA002W2
+
+![](06d_dtw_warpup_files/figure-gfm/final-6.png)<!-- -->
+
+### SMA002W3
+
+![](06d_dtw_warpup_files/figure-gfm/final-7.png)<!-- -->
 
 ``` r
 final <- do.call(rbind, lapply(final, function(f) f[c("set", "v_from", "v_to", "tooth_start", "tooth_end", "ratio",
@@ -231,7 +260,7 @@ jobs <- do.call(rbind, lapply(names(up), function(n){
   data.frame(set = n, v = v[v >= min(b$v_from) & v <= max(b$v_from)])
 }))
 plan(multisession, workers = future::availableCores() - 1)
-rand <- future_map2_dfr(jobs$set, jobs$v, function(n, v) mw(n, v, c(-Inf, Inf)),
+rand <- future_map2_dfr(jobs$set, jobs$v, function(n, v) mw(n, v),
                         .options = furrr_options(packages = c("dtw", "ggplot2")))
 plan(sequential)
 rand <- rand[!grepl("^(cost|warp)_", names(rand))]
@@ -250,9 +279,8 @@ cmp <- do.call(rbind, lapply(names(up), function(n){
         offset_um = abs((m$tooth_start_build + m$tooth_end_build) - (m$tooth_start_rand + m$tooth_end_rand)) / 2)
 }))
 
-# the anchor windows were matched freely too, so they agree by definition: left out of the shares
 agree_tab <- do.call(rbind, lapply(split(cmp, cmp$set), function(d){
-  d <- d[order(d$v_from), ]; o <- d[d$stage != "anchor", ]
+  d <- d[order(d$v_from), ]; o <- d
   rl <- rle(d$agree); e <- cumsum(rl$lengths); st <- e - rl$lengths + 1
   k <- which(rl$values); k <- if(length(k)) k[which.max(rl$lengths[k])] else NA
   data.frame(version = d$set[1], windows = nrow(o),
@@ -268,21 +296,22 @@ knitr::kable(agree_tab, row.names = FALSE)
 
 | version | windows | agree_pct | forward_pct | backward_pct | median_offset_um | longest_vert | longest_tooth |
 |:---|---:|---:|---:|---:|---:|:---|:---|
-| SMA001B1 | 22 | 5 | 0 | 17 | 8638 | 5346-6046 | 25202-45152 |
-| SMA001B2 | 30 | 20 | 0 | 29 | 9088 | 5946-8046 | 35702-43002 |
-| SMA001W1 | 22 | 23 | 26 | 0 | 24588 | 6111-7411 | 12521-43821 |
-| SMA002W1 | 29 | 14 | 20 | 11 | 14075 | 4134-5434 | 27512-35312 |
-| SMA002W2 | 31 | 13 | 12 | 14 | 22925 | 2734-4634 | 14112-29062 |
+| SMA001B1 | 11 | 18 | NaN | 0 | 3873 | 5746-6696 | 36200-40100 |
+| SMA001B3 | 18 | 28 | NaN | 100 | 2661 | 8546-9496 | 39200-41900 |
+| SMA001W1 | 13 | 31 | 0 | NaN | 3011 | 6511-7661 | 40900-43400 |
+| SMA001W3 | 1 | 0 | 0 | NaN | 4386 | \- | \- |
+| SMA002W1 | 29 | 41 | 36 | 33 | 3694 | 3134-6084 | 14156-34450 |
+| SMA002W2 | 8 | 12 | 50 | NaN | 5169 | 4134-4884 | 26300-31950 |
+| SMA002W3 | 6 | 17 | 100 | 0 | 13025 | 1334-2084 | 15800-16900 |
 
-- **windows**: built windows compared (not counting the anchor).
+- **windows**: built windows compared.
 - **agree_pct**: share whose tooth piece overlaps the random-order match
   by at least half; **forward_pct, backward_pct**: the same for each
   direction from the anchor.
 - **median_offset_um**: median distance between the centres of the built
   and random tooth pieces (µm of tooth).
 - **longest_vert, longest_tooth**: the longest run of consecutive
-  agreeing windows (anchor included), on the vertebra and on the tooth
-  (µm).
+  agreeing windows, on the vertebra and on the tooth (µm).
 
 ``` r
 plot_cmp <- function(n){
@@ -298,11 +327,12 @@ plot_cmp <- function(n){
     theme_bw() +
     theme(plot.caption = element_text(hjust = 0)) +
     labs(x = "Vertebra (um)", y = "Matched tooth (um)",
-         caption = paste(strwrap(paste(
+         caption = paste(c(sprintf("%s, built with %s.", n, paste(sub("_Ca.*$", "", anchor_pairs[[n]]), collapse = " + ")),
+           strwrap(paste(
            "Each vertebra window (500 um, every 200 um) within the built-out stretch: the tooth piece matched in",
            "random order (orange, anywhere on the tooth) and by the build from the anchor (green, each window later",
            "or earlier on the tooth than the last). Black = the two overlap by at least half. Grey = anchor; brown",
-           "lines = vertebral bands."), 115), collapse = "\n"))
+           "lines = vertebral bands."), 115)), collapse = "\n"))
 }
 for(n in names(up)){
   cat("\n\n###", n, "\n\n")
@@ -314,21 +344,29 @@ for(n in names(up)){
 
 ![](06d_dtw_warpup_files/figure-gfm/compare-figures-1.png)<!-- -->
 
-### SMA001B1
+### SMA001W3
 
 ![](06d_dtw_warpup_files/figure-gfm/compare-figures-2.png)<!-- -->
 
-### SMA001B2
+### SMA001B1
 
 ![](06d_dtw_warpup_files/figure-gfm/compare-figures-3.png)<!-- -->
 
-### SMA002W1
+### SMA001B3
 
 ![](06d_dtw_warpup_files/figure-gfm/compare-figures-4.png)<!-- -->
 
-### SMA002W2
+### SMA002W1
 
 ![](06d_dtw_warpup_files/figure-gfm/compare-figures-5.png)<!-- -->
+
+### SMA002W2
+
+![](06d_dtw_warpup_files/figure-gfm/compare-figures-6.png)<!-- -->
+
+### SMA002W3
+
+![](06d_dtw_warpup_files/figure-gfm/compare-figures-7.png)<!-- -->
 
 ``` r
 save(up_settings, anchors, anchor_pairs, up, built, built_el, final, rand, cmp, agree_tab, skipped,

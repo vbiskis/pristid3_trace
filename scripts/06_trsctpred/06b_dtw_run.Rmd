@@ -55,8 +55,8 @@ SMA001TB_out$plots$Ca #(never gets to the base, tooth incomplete)
 # rep1
 align_els(SMA001T_filt,
           SMA001V_filt, # Ba gets confused
-          elements = names(span_vec),
-          spanT = 0.02, spanV = 0.04, n = 2000)
+          elements = mavs2,
+          n = 2000)
 
 ```
 
@@ -64,8 +64,8 @@ align_els(SMA001T_filt,
 # rep2
 align_els(SMA001TB_filt,
           SMA001VB_filt,
-          elements = names(span_vec),
-          spanT = 0.02, spanV = 0.04, n = 2000)
+          elements = mavs2,
+          n = 2000)
 
 # similar...
 ```
@@ -75,30 +75,26 @@ align_els(SMA001TB_filt,
 ```{r sma001-multi-b}
 mult1b2 <- align_multi(SMA001TB_filt, SMA001VB_filt,
                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                      spanT = 0.02, spanV = 0.04,
                       n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1b2.1 <- align_multi(SMA001TB_filt, SMA001VB_filt,
                         elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
-                        spanT = 0.02, spanV = 0.04,
                         n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1b3 <- align_multi(SMA001TB_filt, SMA001VB_filt,
                        elements = c('Mg_Ca_mav', 'Zn_Ca_mav', "Mn_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1b3.1 <- align_multi(SMA001TB_filt, SMA001VB_filt,
                        elements = c('Mg_Ca_mav', 'Ba_Ca_mav', "Sr_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1b4 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                       elements = mavs1, spanT = 0.02, spanV = 0.04,
+                       elements = mavs1,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1b6 <- align_multi(SMA001TB_filt, SMA001VB_filt,
-                       elements = mavs2, spanT = 0.02, spanV = 0.04,
+                       elements = mavs2,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 # ahhh that's interesting!
@@ -109,39 +105,32 @@ mult1b6 <- align_multi(SMA001TB_filt, SMA001VB_filt,
 ```{r sma001-multi-w}
 mult1h2 <- align_multi(SMA001T_filt, SMA001V_filt,
                       elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                      spanT = 0.02, spanV = 0.04,
                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                       open_end = TRUE) # same result for both verts
 
 mult1h2.1 <- align_multi(SMA001T_filt, SMA001V_filt,
                          elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
-                         spanT = 0.02, spanV = 0.04,
                          n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1h2.2 <- align_multi(SMA001T_filt, SMA001V_filt,
                          elements = c('Sr_Ca_mav', 'Zn_Ca_mav'),
-                         spanT = 0.02, spanV = 0.04,
                          n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1h3 <- align_multi(SMA001T_filt, SMA001V_filt,
                        elements = c('Mg_Ca_mav', 'Mn_Ca_mav', "Zn_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1h3.1 <- align_multi(SMA001T_filt, SMA001V_filt,
                        elements = c('Mg_Ca_mav', 'Sr_Ca_mav', "Ba_Ca_mav"),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_end = TRUE, open_begin = TRUE)
 
 mult1h4 <- align_multi(SMA001T_filt, SMA001V_filt,
                       elements = mavs1,
-                      spanT = 0.02, spanV = 0.04,
                       n = 6000, open_begin = TRUE,
                       open_end = TRUE) # but this one suggests longer
 
 mult1h6 <- align_multi(SMA001T_filt, SMA001V_filt,
                       elements = mavs2,
-                      spanT = 0.02, spanV = 0.04,
                       n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                       open_end = TRUE)
 ```
@@ -150,7 +139,7 @@ mult1h6 <- align_multi(SMA001T_filt, SMA001V_filt,
 
 ```{r sma002-els, fig.height = 7}
 align_els(SMA002T_filt, SMA002V_filt, elements = mavs2,
-          spanT = 0.02, spanV = 0.04, n = 4000)
+          n = 4000)
 ```
 
 ### Multi
@@ -158,36 +147,31 @@ align_els(SMA002T_filt, SMA002V_filt, elements = mavs2,
 ```{r sma002-multi}
 mult2 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements = c('Mg_Ca_mav', 'Ba_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE) #hmm!
 # oh! it's calling it right before (note tooth incomplete)
 
 mult2.1 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements = c('Mg_Ca_mav', 'Sr_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE)
 
 mult3 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements = c('Mg_Ca_mav', 'Zn_Ca_mav', 'Mn_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE)
 
 mult3.1 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements = c('Mg_Ca_mav', 'Ba_Ca_mav', 'Sr_Ca_mav'),
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000, open_begin = TRUE, # lockV_start = 3266.09,
                        open_end = TRUE)
 
 mult4 <- align_multi(SMA002T_filt, SMA002V_filt,
-                    elements =  mavs1, spanT = 0.02, spanV = 0.04,
+                    elements =  mavs1,
                     n = 6000, open_begin = TRUE, open_end = TRUE)
 
 mult6 <- align_multi(SMA002T_filt, SMA002V_filt,
                        elements =  mavs2,
-                       spanT = 0.02, spanV = 0.04,
                        n = 6000,  open_begin = TRUE,
                        open_end = TRUE)
 

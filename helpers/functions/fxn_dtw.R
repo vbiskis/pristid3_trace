@@ -19,7 +19,7 @@ library(dtwclust) # fxn 4
 
 # compare vert & tooth, free element behaviour
 align_els <- function(datT, datV, elements, n = 1000, # same steps as in thesis but a fxn now
-                      pattern = asymmetric, spanT = 0.02, spanV = 0.01,
+                      pattern = asymmetric, spanT = 0, spanV = 0,   # loess spans (0 = none)
                       gap_um = 50) { # holes wider than this (um) are smoothed either side, not across
   
   datT <- datT[order(datT$true_dist), ]
@@ -235,7 +235,7 @@ select_spans <- function(grid, n_fixed, r2_threshold = 0.9, max_iter = 5){
 # (option to apply spans ID'd from fxn above)
 # lock all elements in when identifying matching region
 align_multi <- function(datT, datV, elements, n = 1000,
-         spanT = 0.15, spanV = 0.05, # around 3x the size
+         spanT = 0, spanV = 0,   # loess spans (0 = none)
          open_begin = TRUE, open_end = TRUE,
          lockV_start = NULL, pattern = asymmetric, gap_um = 50,
          plot = TRUE){   # plot = FALSE: no figure (e.g. when running many)

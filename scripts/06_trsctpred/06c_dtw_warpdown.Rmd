@@ -42,7 +42,6 @@ Instead of building up sections, trialing cutting down the tooth
 ```{r sma001w, fig.height = 8}
 s <- stack_alignments(SMA001T_filt, SMA001V_filt, # 1
                       elements = mavs2, # or mavs1 for just the main 4
-                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
                       n = 1000, n_steps = c(16, 8), # how high res the map is
                       tol_um = 600, ref_step = 1000, # how (detailed) the table prints
                       plot = "heat", # for continuous scale
@@ -68,7 +67,6 @@ a couple options here looks like:
 ```{r sma001b, fig.height = 8}
 t <- stack_alignments(SMA001TB_filt, SMA001VB_filt, # removing end due to inc holes
                       elements = mavs2, # or mavs1 for just the main 4
-                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
                       n = 1000, n_steps = c(16, 8), # how high res the map is
                       tol_um = 600, ref_step = 1000, # how (detailed) the table prints
                       plot = "heat", # for continuous scale
@@ -92,7 +90,6 @@ Ooh and all of them 22k - 50k?
 ```{r sma002, fig.height = 8}
 u <- stack_alignments(SMA002T_filt, SMA002V_filt, # sawfish 1 - bleach
                       elements = mavs2, # or mavs1 for just the main 4
-                      spanT = 0.02, spanV = 0.04, # adjust res again, path ~ same
                       n = 1000, n_steps = c(16, 8), # how high res the map is
                       tol_um = 600, ref_step = 1000, # how (detailed) the table prints
                       plot = "heat", # for continuous scale
@@ -112,12 +109,12 @@ u$plot(by_element = TRUE)
 ```
 
 ```{r save}
-# for 06c2 (anchors): each fish's records, and its stack_alignments() run (paths, runs, spans)
+# for 06c2 (anchors): each fish's records, and its stack_alignments() run (paths, runs)
 gap_um <- 350   # tooth holes wider than this (um), as in 06a's add_mavs()
 fish <- list(
   SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
   SMA001B = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
   SMA002W = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
-stacks <- lapply(list(SMA001W = s, SMA001B = t, SMA002W = u), `[`, c("paths", "runs", "spanT", "spanV"))
+stacks <- lapply(list(SMA001W = s, SMA001B = t, SMA002W = u), `[`, c("paths", "runs"))
 save(fish, stacks, gap_um, file = 'data/output/dtw_cache/06c.RData')
 ```

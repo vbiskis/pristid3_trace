@@ -31,14 +31,15 @@ setwd(here::here())
 source('helpers/functions/fxn_render.R', local = TRUE)
 
 docs <- c('06a' = '06a_dtw_prep.Rmd',
+          '06a2' = '06a2_smooth_test.Rmd',  # rolling median width: breakpoints at several widths
           '06b' = '06b_dtw_run.Rmd',
           '06c' = '06c_dtw_warpdown.Rmd',   # warp down: cutting the tooth, heat maps
           '06c2' = '06c2_dtw_anchor.Rmd',   # anchors from pair agreement (reuses 06c's runs)
           '06d' = '06d_dtw_warpup.Rmd',     # warp up: build from the anchor, random order within it
           '06e' = '06e_dtw_combos.Rmd',     # align_multi with every mix of elements containing Mg
-          '06f' = '06f_dtw_plots.Rmd',      # plots: match_window checks + summary
+          '06f' = '06f_dtw_plots.Rmd',      # where each method puts the tooth (needs 06c, 06d and 06e)
           '06g' = '06g_dtw_stats.Rmd')      # stats: warping and misfit
-needs <- c('06b' = '06a', '06c' = '06a', '06c2' = '06c', '06d' = '06c2', '06e' = '06a', '06f' = '06d', '06g' = '06f')
+needs <- c('06a2' = '06a', '06b' = '06a', '06c' = '06a', '06c2' = '06c', '06d' = '06c2', '06e' = '06a', '06f' = '06e', '06g' = '06f')
 
 pick <- setdiff(commandArgs(trailingOnly = TRUE), '--args')
 if(length(pick) == 0) pick <- names(docs)

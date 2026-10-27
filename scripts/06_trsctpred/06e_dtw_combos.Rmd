@@ -38,8 +38,6 @@ load('data/output/dtw_cache/06a.RData') # objects from 06a
 ```
 
 ```{r combos}
-spanT  <- 0.02   # loess span on the tooth (share of its points)
-spanV  <- 0.04   # loess span on the vertebra
 gap_um <- 350    # tooth holes wider than this (um), as in 06a
 sets <- list(
   SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
@@ -53,7 +51,7 @@ combos <- c(list("Mg_Ca_mav"), unlist(lapply(1:length(others), function(k)
 # align_multi() with one mix; the vertebra position it gives each of the k tooth points
 path_of <- function(n, els, k = 1000){
   set <- sets[[n]]
-  invisible(capture.output(al <- align_multi(set$tooth, set$vert, els, n = k, spanT = spanT, spanV = spanV,
+  invisible(capture.output(al <- align_multi(set$tooth, set$vert, els, n = k,
                                              open_begin = TRUE, open_end = TRUE, gap_um = gap_um, plot = FALSE)))
   tt <- sort(set$tooth$true_dist)[round(seq(1, nrow(set$tooth), length.out = k))]
   vv <- sort(set$vert$true_dist)[round(seq(1, nrow(set$vert), length.out = k))]
@@ -131,4 +129,5 @@ dir.create('data/output/dtw_final', showWarnings = FALSE)
 dir.create('figures/dtw', showWarnings = FALSE)
 write.csv(combo_tab, 'data/output/dtw_final/element_combos.csv', row.names = FALSE)
 for(n in fish) ggsave(paste0('figures/dtw/element_combos_', n, '.png'), figs[[n]], width = 10, height = 9, dpi = 300)
+save(combo_tab, file = 'data/output/dtw_cache/06e.RData')   # for 06f
 ```
