@@ -17,7 +17,7 @@ Starts from 06a - 06d (`data/output/dtw_cache/`). The earlier version is in
 `original/06e_dtw_rates.R`. For each set, `match_window()` with all six elements is run
 over four stretches of the vertebra, each showing the overlay and the warp path:
 
-1. **Anchor**: where the set's anchor pair maps the same tooth to the same place (06c).
+1. **Anchor**: where the set's anchor pair maps the same tooth to the same place (06c2).
 2. **Mg window**: where Mg places the whole, uncut tooth (06c); Sr's if Mg isn't in the run (see 06d).
 3. **Build-out**: the whole stretch 06d's windows built out to, from the anchor.
 4. **align_multi range**: the stretch `align_multi()` matched the tooth to, run on the
@@ -38,7 +38,7 @@ source('helpers/functions/fxn_mavs.R')
 source('helpers/functions/fxn_dtw.R')
 source('helpers/functions/fxn_warps.R')
 load('data/output/dtw_cache/06a.RData') # objects from 06a
-load('data/output/dtw_cache/06c.RData') # sets, gap_um, down, anchors from 06c
+load('data/output/dtw_cache/06c2.RData') # sets, gap_um, down, anchors from 06c2
 load('data/output/dtw_cache/06d.RData') # up, built (build-out windows) from 06d
 ```
 

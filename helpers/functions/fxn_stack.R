@@ -207,38 +207,63 @@ stack_alignments <- function(tooth, vert, elements,
 
 # pair_agreement(): where two elements map the same tooth to the same place on the vertebra ----
 #' from stack_alignments() paths: each element's median vertebra position (over all cuts) for every
-#' bin_um of tooth; the two agree where they are within tol_um. stretch = the longest run of agreeing
-#' bins (at least min_bins), its tooth range and vertebra range (mean of the two elements)
-pair_agreement <- function(s, el1 = "Mg_Ca_mav", el2 = "Sr_Ca_mav", tol_um = 500, bin_um = 500, min_bins = 3){
+#' bin_um of tooth. A bin is steady when both paths' slopes (um of vert per um of tooth, over
+#' slope_bins bins either side) are within slope_range (outside it the path is near vertical or near
+#' flat on the plot) and within slope_tol x of each other. The anchor: start from the longest run of
+#' bins that are steady and close (within tol_um), extend it from either end while the bins stay
+#' steady (it stops at the pivot), then trim any near vertical/flat step off the ends. At least
+#' min_bins bins. The box covers both paths: its vertebra range is the lowest to highest of the two
+pair_agreement <- function(s, el1 = "Mg_Ca_mav", el2 = "Sr_Ca_mav", tol_um = 500, bin_um = 500, min_bins = 3,
+                           slope_range = c(1/8, 2), slope_tol = 2, slope_bins = 2){
   p <- s$paths[s$paths$element %in% c(el1, el2), ]
   p$tooth <- round(p$tooth / bin_um) * bin_um
   m <- aggregate(vert ~ tooth + element, p, median)
   w <- merge(m[m$element == el1, c("tooth", "vert")], m[m$element == el2, c("tooth", "vert")],
              by = "tooth", suffixes = c("_1", "_2"))
   w$diff  <- w$vert_2 - w$vert_1
-  w$agree <- abs(w$diff) <= tol_um
-  r <- rle(w$agree); e <- cumsum(r$lengths); st <- e - r$lengths + 1
-  k <- which(r$values & r$lengths >= min_bins)
+  w$close <- abs(w$diff) <= tol_um
+  in_rng <- function(x) !is.na(x) & x >= slope_range[1] & x <= slope_range[2]
+  # slopes over slope_bins bins either side: DTW paths are staircases, so bin-to-bin slopes jump
+  # between flat and steep even where the path as a whole is steady
+  sm <- function(v){ i <- seq_along(v); lo <- pmax(1, i - slope_bins); hi <- pmin(length(v), i + slope_bins)
+    (v[hi] - v[lo]) / (w$tooth[hi] - w$tooth[lo]) }
+  w$slope_1 <- sm(w$vert_1); w$slope_2 <- sm(w$vert_2)
+  w$steady <- in_rng(w$slope_1) & in_rng(w$slope_2) & pmax(w$slope_1, w$slope_2) / pmin(w$slope_1, w$slope_2) <= slope_tol
+  w$steady[is.na(w$steady)] <- FALSE
+  # bin-to-bin, both paths in range: for trimming a corner off the ends
+  step_ok <- in_rng(diff(w$vert_1) / diff(w$tooth)) & in_rng(diff(w$vert_2) / diff(w$tooth))
+  r <- rle(w$close & w$steady); e <- cumsum(r$lengths); st <- e - r$lengths + 1
+  k <- which(r$values)
   stretch <- if(length(k) == 0) NULL else {
-    k <- k[which.max(r$lengths[k])]; i <- st[k]:e[k]
-    data.frame(tooth_from = w$tooth[st[k]], tooth_to = w$tooth[e[k]],
-               vert_from = round(mean(c(w$vert_1[st[k]], w$vert_2[st[k]]))),
-               vert_to   = round(mean(c(w$vert_1[e[k]], w$vert_2[e[k]]))),
+    k <- k[which.max(r$lengths[k])]; a <- st[k]; z <- e[k]
+    while(a > 1 && w$steady[a - 1]) a <- a - 1               # extend back to the pivot
+    while(z < nrow(w) && w$steady[z + 1]) z <- z + 1         # and forward
+    while(a < z && !step_ok[a]) a <- a + 1                   # trim near vertical/flat steps off the ends
+    while(z > a && !step_ok[z - 1]) z <- z - 1
+    i <- a:z
+    if(length(i) < min_bins) NULL else data.frame(tooth_from = w$tooth[a], tooth_to = w$tooth[z],
+               vert_from = round(min(w$vert_1[i], w$vert_2[i])), vert_to = round(max(w$vert_1[i], w$vert_2[i])),
+               start_from = w$tooth[st[k]], start_to = w$tooth[e[k]],
                median_diff_um = round(median(abs(w$diff[i]))))
   }
   n1 <- sub("_Ca.*$", "", el1); n2 <- sub("_Ca.*$", "", el2)
   long <- rbind(data.frame(tooth = w$tooth, vert = w$vert_1, element = n1),
                 data.frame(tooth = w$tooth, vert = w$vert_2, element = n2))
-  plot <- ggplot(long, aes(tooth, vert, colour = element)) +
-    { if(!is.null(stretch)) ggplot2::annotate("rect", xmin = stretch$tooth_from, xmax = stretch$tooth_to,
-                                     ymin = -Inf, ymax = Inf, fill = "grey85") } +
-    geom_line(linewidth = 0.9) +
+  long <- long[order(long$element, long$tooth), ]   # geom_path: drawn in tooth order, not sorted by vert
+  plot <- ggplot(long, aes(vert, tooth, colour = element)) +
+    { if(!is.null(stretch)) ggplot2::annotate("rect", xmin = stretch$vert_from, xmax = stretch$vert_to,
+                                     ymin = stretch$tooth_from, ymax = stretch$tooth_to, fill = "grey85") } +
+    geom_path(linewidth = 0.9) +
     theme_bw() +
     theme(plot.caption = element_text(hjust = 0)) +
-    labs(x = "Tooth (um)", y = "Vertebra (um)", colour = NULL,
+    labs(x = "Vertebra (um)", y = "Tooth (um)", colour = NULL,
          caption = paste(strwrap(sprintf(paste(
-           "Where %s and %s put each %g um of tooth on the vertebra (median over all cuts). Grey = the longest",
-           "stretch where the two are within %g um of each other (at least %d bins): the anchor."),
-           n1, n2, bin_um, tol_um, min_bins), 115), collapse = "\n"))
+           "Where %s and %s put each %g um of tooth on the vertebra (median over all cuts). Grey box = the anchor:",
+           "it starts from the longest stretch where the two are within %g um of each other and both keep a similar",
+           "slope (%.2g-%.2g um of vertebra per um of tooth, so not near vertical or flat, and within %gx of each other,",
+           "measured over %g um of tooth), then extends from either end until the pivot. Near vertical or flat steps at",
+           "the ends are trimmed. At least %d bins; the box spans both paths."),
+           n1, n2, bin_um, tol_um, slope_range[1], slope_range[2], slope_tol, 2 * slope_bins * bin_um, min_bins),
+           115), collapse = "\n"))
   list(bins = w, stretch = stretch, plot = plot)
 }

@@ -37,7 +37,7 @@ source('helpers/functions/fxn_dtw.R')
 load('data/output/dtw_cache/06a.RData') # objects from 06a
 ```
 
-```{r combos, fig.show = 'hide'}
+```{r combos}
 spanT  <- 0.02   # loess span on the tooth (share of its points)
 spanV  <- 0.04   # loess span on the vertebra
 gap_um <- 350    # tooth holes wider than this (um), as in 06a
@@ -54,7 +54,7 @@ combos <- c(list("Mg_Ca_mav"), unlist(lapply(1:length(others), function(k)
 path_of <- function(n, els, k = 1000){
   set <- sets[[n]]
   invisible(capture.output(al <- align_multi(set$tooth, set$vert, els, n = k, spanT = spanT, spanV = spanV,
-                                             open_begin = TRUE, open_end = TRUE, gap_um = gap_um)))
+                                             open_begin = TRUE, open_end = TRUE, gap_um = gap_um, plot = FALSE)))
   tt <- sort(set$tooth$true_dist)[round(seq(1, nrow(set$tooth), length.out = k))]
   vv <- sort(set$vert$true_dist)[round(seq(1, nrow(set$vert), length.out = k))]
   v  <- tapply(vv[al$index2], al$index1, mean)
@@ -85,7 +85,7 @@ for(n in fish){
 
 ## Figures
 
-```{r figures, results = 'asis', fig.height = 9}
+```{r plot-combos}
 plot_combos <- function(n){
   d <- combo_tab[combo_tab$set == n, ]
   d$elements <- factor(d$elements, levels = rev(d$elements[order(d$n_elements, d$fit)]))
@@ -105,13 +105,30 @@ plot_combos <- function(n){
            "put each point of the tooth. Rows are grouped by number of elements, best fit first. Brown lines =",
            "vertebral bands."), 115), collapse = "\n"))
 }
-for(n in fish){
-  cat("\n\n###", n, "\n\n")
-  print(plot_combos(n))
-}
+figs <- lapply(setNames(fish, fish), plot_combos)
+```
+
+### SMA001W
+
+```{r sma001w, fig.height = 9}
+figs$SMA001W
+```
+
+### SMA001B
+
+```{r sma001b, fig.height = 9}
+figs$SMA001B
+```
+
+### SMA002W
+
+```{r sma002w, fig.height = 9}
+figs$SMA002W
 ```
 
 ```{r save}
 dir.create('data/output/dtw_final', showWarnings = FALSE)
+dir.create('figures/dtw', showWarnings = FALSE)
 write.csv(combo_tab, 'data/output/dtw_final/element_combos.csv', row.names = FALSE)
+for(n in fish) ggsave(paste0('figures/dtw/element_combos_', n, '.png'), figs[[n]], width = 10, height = 9, dpi = 300)
 ```

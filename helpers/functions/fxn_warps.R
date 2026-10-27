@@ -63,6 +63,7 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
                          spanV, ratio_range = c(1, 15),
                          n_ratios     = 8,
                          tooth_search = c(-Inf, Inf), # only search this part of the tooth
+                         start_search = c(-Inf, Inf), # and only pieces starting in this range
                          start_step   = 100,          # um between candidate tooth starts
                          n_pts        = 100,          # points each piece is resampled to
                          window_frac  = 0.3,          # how freely each element may warp
@@ -121,7 +122,9 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
     tlen <- r * win
     if(tlen > hi - lo) next
     zT <- prep$tooth_at_ratio(r)$z
-    for(s in seq(lo, hi - tlen, by = start_step)){
+    s_from <- max(lo, start_search[1]); s_to <- min(hi - tlen, start_search[2])
+    if(s_from > s_to) next
+    for(s in seq(s_from, s_to, by = start_step)){
       tp   <- tooth_piece(zT, s, tlen)
       if(is.null(tp)) next
       Tw   <- tp$z

@@ -1,0 +1,95 @@
+---
+title: "06c.2 DTW anchor"
+author: "Nikki BIskis"
+date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
+output: 
+  github_document:
+    toc: true
+    html_preview: false
+---
+
+- **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
+- **DOI:** tbd
+- **Written:** 14 Aug 2026
+- **Content:** dynamic time warping IV
+
+Extension of 06c_dtw_warpdown.Rmd
+So we don't have to re-knit the plots every time! Starts from 06c's stack runs
+(`data/output/dtw_cache/06c.RData`); saves `06c2.RData` for 06d, 06f and 06g.
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
+knitr::opts_chunk$set(fig.width = 10, fig.height = 6, dpi = 120,
+                      message = FALSE, warning = FALSE, comment = "#>")
+```
+
+```{r load}
+source('helpers/microHelp.R')
+source('helpers/functions/fxn_stack.R')
+load('data/output/dtw_cache/06c.RData') # fish, stacks (each fish's stack_alignments() run), gap_um from 06c
+```
+
+## Where two elements agree: the anchor
+
+The anchor starts from the longest stretch where the pair's alignments are close (within `tol_um` of each other) 
+and both paths keep a similar slope, then extends from either end, one 500 µm bin of tooth at a time, 
+while the slopes stay similar. Close alone isn't enough to start: two flat paths will agree without aligning anything. 
+
+A similar slope means:
+
+- **in range**: `slope_range` µm of vertebra per µm of tooth. 1/25 is the near-vertical limit 06d uses (25 µm of tooth per µm of vertebra); below it the tooth moves on and the vertebra doesn't. Above the top end the path is near flat (the reverse). 
+Neither is an alignment.
+- **alike**: the two paths' slopes within `slope_tol` times of each other (running parallel).
+
+Slopes are measured over `slope_bins` bins either side (2 = 2000 µm of tooth), since DTW paths are
+staircases: bin to bin they jump between flat and steep even where the path as a whole is steady.
+The anchor stops at the pivot, where the slopes stop being similar; any near-vertical or near-flat
+step left at its ends is trimmed off. It needs at least `min_bins` bins. The box spans both paths:
+its vertebra range runs from the lower of the two to the higher. The pair is chosen per version
+(`anchor_pairs`, from the heat maps in 06c), and `version_fish` says which fish each version is.
+Its vertebra and tooth ranges are used as the anchor in 06d.
+
+```{r agree}
+anchor_pairs <- list(SMA001W1 = c("Mg_Ca_mav", "Sr_Ca_mav"),
+                     SMA001B1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001B2 = c("Mg_Ca_mav", "Ba_Ca_mav"),
+                     SMA002W1 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA002W2 = c("Zn_Ca_mav", "Sr_Ca_mav"))   
+agree_settings <- list(tol_um = 600, bin_um = 500, min_bins = 2, slope_range = c(1/25, 1), slope_tol = 3, slope_bins = 2)
+version_fish <- c(SMA001W1 = "SMA001W", SMA001B1 = "SMA001B", SMA001B2 = "SMA001B",
+                  SMA002W1 = "SMA002W", SMA002W2 = "SMA002W")
+agree <- lapply(setNames(names(anchor_pairs), names(anchor_pairs)), function(n)
+  do.call(pair_agreement, c(list(stacks[[version_fish[[n]]]], anchor_pairs[[n]][1], anchor_pairs[[n]][2]), agree_settings)))
+anchors      <- lapply(agree, function(a) if(is.null(a$stretch)) NULL else c(a$stretch$vert_from, a$stretch$vert_to))
+anchor_tooth <- lapply(agree, function(a) if(is.null(a$stretch)) NULL else c(a$stretch$tooth_from, a$stretch$tooth_to))
+knitr::kable(do.call(rbind, lapply(names(agree), function(n)
+  cbind(set = n, pair = paste(sub("_Ca.*$", "", anchor_pairs[[n]]), collapse = " + "),
+        if(is.null(agree[[n]]$stretch)) data.frame(tooth_from = NA, tooth_to = NA, vert_from = NA, vert_to = NA, start_from = NA, start_to = NA, median_diff_um = NA)
+        else agree[[n]]$stretch))), row.names = FALSE)
+```
+
+- **pair**: the two elements compared.
+- **tooth_from, tooth_to**: the anchor's stretch of tooth (µm); 06d's first window has to start in it.
+- **vert_from, vert_to**: the anchor's stretch of vertebra, from the lower of the two paths to the higher (µm); the anchor for 06d.
+- **start_from, start_to**: the tooth stretch it started from, where the two are close (µm).
+- **median_diff_um**: how far apart the two put the tooth over the anchor (median, µm). NA = no close, steady stretch of at least `min_bins` bins.
+
+```{r agree-sma001w}
+agree$SMA001W1$plot
+```
+
+```{r agree-sma001b}
+agree$SMA001B1$plot
+agree$SMA001B2$plot
+```
+
+```{r agree-sma002w}
+agree$SMA002W1$plot
+agree$SMA002W2$plot
+```
+
+```{r save}
+# each version: its fish's records and stack run, under the version's name, for 06d
+sets <- lapply(version_fish, function(f) fish[[f]])
+down <- lapply(version_fish, function(f) stacks[[f]][c("runs", "spanT", "spanV")])
+save(sets, gap_um, down, anchor_pairs, agree_settings, anchors, anchor_tooth,
+     file = 'data/output/dtw_cache/06c2.RData')
+```

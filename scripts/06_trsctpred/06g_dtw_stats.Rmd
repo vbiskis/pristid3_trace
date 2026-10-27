@@ -13,7 +13,7 @@ output:
 - **Written:** 30 Aug 2026 (warping and misfit Oct 2026)
 - **Content:** dynamic time warping VII: how the warping and the misfit vary along the vertebra, and what goes with poor alignment
 
-Starts from 06a, 06c, 06d and 06f (`data/output/dtw_cache/`); uses 06d's build-out
+Starts from 06a, 06c2, 06d and 06f (`data/output/dtw_cache/`); uses 06d's build-out
 windows. The earlier version is in `original/06f_dtw_plots.R`. For each window:
 
 - **Growth ratio**: µm of tooth matched per µm of vertebra (`ratio`).
@@ -37,7 +37,7 @@ source('helpers/microHelp.R')
 source('helpers/functions/fxn_mavs.R')
 source('helpers/functions/fxn_dtw.R')    # also find_gaps(), in_gaps()
 load('data/output/dtw_cache/06a.RData')  # objects from 06a
-load('data/output/dtw_cache/06c.RData')  # sets, gap_um from 06c
+load('data/output/dtw_cache/06c2.RData')  # sets, gap_um from 06c2
 load('data/output/dtw_cache/06d.RData')  # built_el (each element's fit and warp per window) from 06d
 load('data/output/dtw_cache/06f.RData')  # built (matched build-out windows) from 06f
 ```

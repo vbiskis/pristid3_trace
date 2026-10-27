@@ -1,13 +1,11 @@
 06c · DTW warp down
 ================
 Nikki Biskis
-Rendered 27 Oct 2026 10:55
+Rendered 27 Oct 2026 12:56
 
 - [SMA001 (water)](#sma001-water)
 - [SMA001 (bleach)](#sma001-bleach)
 - [SMA002](#sma002)
-- [Where two elements agree: the
-  anchor](#where-two-elements-agree-the-anchor)
 
 - **Paper:** The potential of elemental analysis in determining origin
   of sawfish rostra
@@ -408,88 +406,13 @@ u$plot(by_element = TRUE)
 
 ![](06c_dtw_warpdown_files/figure-gfm/sma002-cuts-1.png)<!-- -->
 
-## Where two elements agree: the anchor
-
-From the three runs above (s, t, u): for every 500 µm of tooth, where
-two elements put it on the vertebra (median over all cuts). The anchor
-is the longest stretch where the two are within `tol_um` of each other,
-i.e. where they map the same tooth to the same place. The pair is chosen
-per set (`anchor_pairs`, from the heat maps above). Its vertebra range
-is used as the anchor in 06d.
-
 ``` r
-anchor_pairs <- list(SMA001W1 = c("Mg_Ca_mav", "Sr_Ca_mav"),
-                     SMA001B1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001B2 = c("Mg_Ca_mav", "Ba_Ca_mav"),
-                     SMA002W1 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA002W2 = c("Zn_Ca_mav", "Sr_Ca_mav"))   
-agree_settings <- list(tol_um = 500, bin_um = 500, min_bins = 3)
-runs_by_set <- list(SMA001W1 = s, SMA001B1 = t, SMA001B2 = t, SMA002W1 = u, SMA002W2 = u)
-agree <- lapply(setNames(names(runs_by_set), names(runs_by_set)), function(n)
-  do.call(pair_agreement, c(list(runs_by_set[[n]], anchor_pairs[[n]][1], anchor_pairs[[n]][2]), agree_settings)))
-anchors <- lapply(agree, function(a) if(is.null(a$stretch)) NULL else c(a$stretch$vert_from, a$stretch$vert_to))
-knitr::kable(do.call(rbind, lapply(names(agree), function(n)
-  cbind(set = n, pair = paste(sub("_Ca.*$", "", anchor_pairs[[n]]), collapse = " + "),
-        if(is.null(agree[[n]]$stretch)) data.frame(tooth_from = NA, tooth_to = NA, vert_from = NA, vert_to = NA, median_diff_um = NA)
-        else agree[[n]]$stretch))), row.names = FALSE)
-```
-
-| set      | pair    | tooth_from | tooth_to | vert_from | vert_to | median_diff_um |
-|:---------|:--------|-----------:|---------:|----------:|--------:|---------------:|
-| SMA001W1 | Mg + Sr |      28500 |    40000 |      5993 |    6894 |            423 |
-| SMA001B1 | Mg + Sr |      33500 |    36500 |      5582 |    5937 |            434 |
-| SMA001B2 | Mg + Ba |      39000 |    41500 |      6652 |    8110 |            226 |
-| SMA002W1 | Mg + Ba |      16000 |    30000 |      3989 |    5342 |            305 |
-| SMA002W2 | Zn + Sr |      20000 |    25500 |      2949 |    4477 |            181 |
-
-- **pair**: the two elements compared.
-- **tooth_from, tooth_to**: the stretch of tooth where the two agree
-  (µm).
-- **vert_from, vert_to**: where that stretch sits on the vertebra (mean
-  of the two elements); the anchor for 06d.
-- **median_diff_um**: how far apart the two put the tooth over the
-  stretch (median, µm). NA = they never agree over 3 bins in a row.
-
-``` r
-agree$SMA001W1$plot
-```
-
-![](06c_dtw_warpdown_files/figure-gfm/agree-sma001w-1.png)<!-- -->
-
-``` r
-agree$SMA001B1$plot
-```
-
-![](06c_dtw_warpdown_files/figure-gfm/agree-sma001b-1.png)<!-- -->
-
-``` r
-agree$SMA001B2$plot
-```
-
-![](06c_dtw_warpdown_files/figure-gfm/agree-sma001b-2.png)<!-- -->
-
-``` r
-agree$SMA002W1$plot
-```
-
-![](06c_dtw_warpdown_files/figure-gfm/agree-sma002w-1.png)<!-- -->
-
-``` r
-agree$SMA002W2$plot
-```
-
-![](06c_dtw_warpdown_files/figure-gfm/agree-sma002w-2.png)<!-- -->
-
-``` r
+# for 06c2 (anchors): each fish's records, and its stack_alignments() run (paths, runs, spans)
 gap_um <- 350   # tooth holes wider than this (um), as in 06a's add_mavs()
-sets <- list(
-  SMA001W1 = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
-  SMA001B1 = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
-  SMA001B2 = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
-  SMA002W1 = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)),
-  SMA002W2 = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
-
-# each version's stack_alignments() run: its runs and spans
-down <- lapply(runs_by_set, function(x) list(runs = x$runs, spanT = x$spanT, spanV = x$spanV))
-
-save(sets, gap_um, down, anchor_pairs, agree_settings, anchors,
-     file = 'data/output/dtw_cache/06c.RData')
+fish <- list(
+  SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
+  SMA001B = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
+  SMA002W = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
+stacks <- lapply(list(SMA001W = s, SMA001B = t, SMA002W = u), `[`, c("paths", "runs", "spanT", "spanV"))
+save(fish, stacks, gap_um, file = 'data/output/dtw_cache/06c.RData')
 ```

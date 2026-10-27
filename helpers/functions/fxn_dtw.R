@@ -237,7 +237,8 @@ select_spans <- function(grid, n_fixed, r2_threshold = 0.9, max_iter = 5){
 align_multi <- function(datT, datV, elements, n = 1000,
          spanT = 0.15, spanV = 0.05, # around 3x the size
          open_begin = TRUE, open_end = TRUE,
-         lockV_start = NULL, pattern = asymmetric, gap_um = 50){   
+         lockV_start = NULL, pattern = asymmetric, gap_um = 50,
+         plot = TRUE){   # plot = FALSE: no figure (e.g. when running many)
   
   datT <- datT[order(datT$true_dist), ]
   datV <- datV[order(datV$true_dist), ]
@@ -283,14 +284,16 @@ align_multi <- function(datT, datV, elements, n = 1000,
       "Vert: ", vert_start, "to", vert_end, "\n",
       "Normalized distance:", alignment$normalizedDistance/sqrt(length(elements)), "\n")
   
-  par(mfrow = c(ceiling(length(elements)/2), 2))
-  for(element in elements) {
-    smooth_col <- paste0(element, "_smooth")
-    plot(datV[[smooth_col]] ~ datV$true_dist, type = "l", ylab = element, xlab = "Vertebra (um)")
-    lines(datT[[smooth_col]][tooth_idx[alignment$index1]] ~
-            datV$true_dist[vert_idx[alignment$index2]], col = "red")
+  if(plot){
+    par(mfrow = c(ceiling(length(elements)/2), 2))
+    for(element in elements) {
+      smooth_col <- paste0(element, "_smooth")
+      plot(datV[[smooth_col]] ~ datV$true_dist, type = "l", ylab = element, xlab = "Vertebra (um)")
+      lines(datT[[smooth_col]][tooth_idx[alignment$index1]] ~
+              datV$true_dist[vert_idx[alignment$index2]], col = "red")
+    }
+    par(mfrow = c(1,1))
   }
-  par(mfrow = c(1,1))
   
   return(alignment)
 }
