@@ -32,12 +32,12 @@ names(transsplit)
 
 plot_els <- c('Sr_Ca', 'Ba_Ca', 'Mg_Ca', 'Li_Ca')
 elsg <- els[!els %in% c("Cu_Ca", "Pb_Ca", 'Ni_Ca')]
-SMA001TB <- subset(flag_holes(transsplit[[54]], trigger = 2.5, release = 1.25), !.hole)
-SMA001T <- subset(flag_holes(transsplit[[55]], trigger = 2.5, release = 1.25), !.hole)
+SMA001TB <- get_spikes(transsplit[[54]], threshold = 2.5, release = 1.25, min_points = 1, drop = TRUE)
+SMA001T <- get_spikes(transsplit[[55]], threshold = 2.5, release = 1.25, min_points = 1, drop = TRUE)
 SMA001VB <- transsplit[[56]]
 SMA001V <- transsplit[[57]]
-SMA002TB <- subset(flag_holes(transsplit[[58]], trigger = 2.5, release = 1.25), !.hole)
-SMA002T <- subset(flag_holes(transsplit[[59]], trigger = 2.5, release = 1.25), !.hole)
+SMA002TB <- get_spikes(transsplit[[58]], threshold = 2.5, release = 1.25, min_points = 1, drop = TRUE)
+SMA002T <- get_spikes(transsplit[[59]], threshold = 2.5, release = 1.25, min_points = 1, drop = TRUE)
 SMA002V <- transsplit[[60]]
 ```
 

@@ -59,7 +59,6 @@ at_pts <- function(z, x, xout, elements){
   matrix(m, ncol = ncol(z), dimnames = list(NULL, elements))
 }
 
-
 match_window <- function(datT, datV, elements, v_from, win = 1000,
                          spanV, ratio_range = c(1, 15),
                          n_ratios     = 8,
@@ -71,7 +70,7 @@ match_window <- function(datT, datV, elements, v_from, win = 1000,
                          tooth_max    = Inf,
                          gap_um       = 50,           # holes wider than this (um) in the tooth are skipped
                          plot         = FALSE,
-                         zoom         = Inf,            # plot: windows of life shown either side (Inf = whole vert)
+                         zoom         = Inf,          # plot: windows of life shown either side (Inf = whole vert)
                          offset       = 3,
                          prep         = NULL,         # optional: reuse prep_records() output in loops
                          bands        = NULL,         # optional: vert positions (um) of the dark bands (centres)

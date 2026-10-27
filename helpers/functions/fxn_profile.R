@@ -20,58 +20,37 @@ scale_In <- function(in_vals, primary_vals){
   list(scale = scale, shift = shift)
 } #to get on the plot with a secondary scale
 
-get_spikes <- function(id, threshold = 0.5){
-  with(id, {
-    spike <- In_Ca > threshold
-    r <- rle(spike)
-    ends <- cumsum(r$lengths)
-    starts <- ends - r$lengths + 1
-    
-    keep <- r$values & r$lengths > 2
-    s <- starts[keep]
-    e <- ends[keep]
-    
-    data.frame(
-      start_dist = true_dist[s],
-      end_dist   = true_dist[e],
-      n_points   = r$lengths[keep],
-      max_In_Ca  = mapply(function(a, b) max(In_Ca[a:b]), s, e)
-    )
-  })
-}
-
-# actually lets find a way to remove them entirely:
-flag_holes <- function(dat, in_col = "In_Ca", trigger = 4, release = 2){
-  dat <- dat[order(dat$true_dist), ]
-  inn <- dat[[in_col]]
-  above <- !is.na(inn) & inn >= release
-  
-  r      <- rle(above)
+# In:Ca spikes: runs of points with In:Ca at or above `release` whose peak goes above `threshold`
+# (release = threshold: just the points above threshold; release lower: the spike's shoulders too),
+# at least min_points long. Returns a table of spikes, or with drop = TRUE the data without them.
+# attr(, "rows") = which rows (sorted by distance) are in a spike
+get_spikes <- function(id, threshold = 0.5, release = threshold, min_points = 3,
+                       drop = FALSE, in_col = "In_Ca"){
+  id  <- id[order(id$true_dist), ]
+  inn <- id[[in_col]]
+  r   <- rle(!is.na(inn) & inn >= release)
   ends   <- cumsum(r$lengths)
   starts <- ends - r$lengths + 1
-  hole   <- rep(FALSE, nrow(dat))
-  tab    <- data.frame(start_dist = numeric(0), end_dist = numeric(0),
-                       peak_In = numeric(0), n_points = integer(0))
-  
-  for(k in which(r$values)){
-    i <- starts[k]:ends[k]
-    if(max(inn[i]) > trigger){
-      hole[i] <- TRUE
-      tab <- rbind(tab, data.frame(start_dist = dat$true_dist[starts[k]],
-                                   end_dist   = dat$true_dist[ends[k]],
-                                   peak_In    = max(inn[i]),
-                                   n_points   = length(i)))
-    }
-  }
-  dat$.hole <- hole
-  attr(dat, "holes") <- tab
-  dat
+  keep <- which(r$values & r$lengths >= min_points)
+  keep <- keep[vapply(keep, function(k) max(inn[starts[k]:ends[k]]) > threshold, logical(1))]
+  rows <- rep(FALSE, nrow(id))
+  for(k in keep) rows[starts[k]:ends[k]] <- TRUE
+  if(drop) return(id[!rows, ])
+  out <- data.frame(
+    start_dist = id$true_dist[starts[keep]],
+    end_dist   = id$true_dist[ends[keep]],
+    n_points   = r$lengths[keep],
+    max_In_Ca  = vapply(keep, function(k) max(inn[starts[k]:ends[k]]), numeric(1))
+  )
+  attr(out, "rows") <- rows
+  out
 }
 
 plot_holes <- function(dat, elements, in_col = "In_Ca", trigger = 4, release = 2,
                        show_removed = TRUE){
-  d     <- flag_holes(dat, in_col, trigger, release)
-  holes <- attr(d, "holes")
+  d     <- dat[order(dat$true_dist), ]
+  holes <- get_spikes(d, threshold = trigger, release = release, min_points = 1, in_col = in_col)
+  d$.hole <- attr(holes, "rows")
   
   long <- do.call(rbind, lapply(c(elements, in_col), function(el)
     data.frame(panel = el, true_dist = d$true_dist, value = d[[el]], hole = d$.hole)))

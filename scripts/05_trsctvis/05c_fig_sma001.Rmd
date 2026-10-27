@@ -52,16 +52,13 @@ get_spikes(id = SMA001T) %>%
   round(digits = 2)
 ```
 
-#### Holes and smoothing
+#### Holes
 
-Removing the In spikes leaves holes. Smoothing runs on each piece
-between holes on its own (`smooth_gaps()` in `helpers/functions/fxn_gaps.R`),
-here and in the DTW scripts. Red is one loess across everything (no sep chunks);
-blue is each piece on its own between holes.
+Removing the In spikes leaves holes. Smoothing runs on each piece between holes on
+its own (`smooth_gaps()` in `helpers/functions/fxn_gaps.R`), here and in the DTW scripts.
 
 ```{r sma001th-gaps, fig.height = 8}
 find_gaps(SMA001T$true_dist) # holes > 50 um (normal spacing ~8.6 um)
-plot_smoothing(SMA001T, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.01, gap_um = 100) # no benefit - looks the same
 ```
 
 ```{r sma001th}
@@ -181,11 +178,10 @@ SMA001TB <- b1$data[!b1$data$.hole, ]
 get_spikes(SMA001TB)
 ```
 
-#### Holes and smoothing
+#### Holes
 
 ```{r sma001tb-gaps, fig.height = 8}
 find_gaps(SMA001TB$true_dist) # holes > 50 um (normal spacing ~8.6 um)
-plot_smoothing(SMA001TB, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.01)
 ```
 
 ```{r sma001tb}

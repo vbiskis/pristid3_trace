@@ -1,0 +1,117 @@
+---
+title: "06e · DTW element combinations"
+author: "Nikki Biskis"
+date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
+output:
+  github_document:
+    toc: true
+    html_preview: false
+---
+
+- **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
+- **DOI:** tbd
+- **Written:** Oct 2026
+- **Content:** dynamic time warping V: how the alignment changes as elements are added to Mg
+
+For each fish, `align_multi()` is run on the whole tooth and vertebra (open start and
+end) with Mg alone, then with Mg plus every combination of
+the other five elements (32 runs). The order elements are added in doesn't change an
+`align_multi()` result, so each combination runs once. For each:
+
+- **vert_from, vert_to, R**: where the tooth lands on the vertebra, and the growth ratio (µm of tooth per µm of vertebra).
+- **fit**: DTW normalised distance divided by √(number of elements), so mixes of different sizes can be compared (z-score units; lower = closer match).
+- **shift_um**: how far the combination's path is from Mg's own: the mean distance (µm of vertebra) between where the two put each point of the tooth. 0 = adding the elements changes nothing.
+
+Starts from 06a (`data/output/dtw_cache/06a.RData`).
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
+knitr::opts_chunk$set(fig.width = 10, fig.height = 9, dpi = 120,
+                      message = FALSE, warning = FALSE, comment = "#>")
+```
+
+```{r load}
+source('helpers/microHelp.R')
+source('helpers/functions/fxn_mavs.R')
+source('helpers/functions/fxn_dtw.R')
+load('data/output/dtw_cache/06a.RData') # objects from 06a
+```
+
+```{r combos, fig.show = 'hide'}
+spanT  <- 0.02   # loess span on the tooth (share of its points)
+spanV  <- 0.04   # loess span on the vertebra
+gap_um <- 350    # tooth holes wider than this (um), as in 06a
+sets <- list(
+  SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
+  SMA001B = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
+  SMA002W = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
+fish <- names(sets)
+others <- setdiff(mavs2, "Mg_Ca_mav")
+combos <- c(list("Mg_Ca_mav"), unlist(lapply(1:length(others), function(k)
+  lapply(combn(others, k, simplify = FALSE), function(x) c("Mg_Ca_mav", x))), recursive = FALSE))
+
+# align_multi() with one mix; the vertebra position it gives each of the k tooth points
+path_of <- function(n, els, k = 1000){
+  set <- sets[[n]]
+  invisible(capture.output(al <- align_multi(set$tooth, set$vert, els, n = k, spanT = spanT, spanV = spanV,
+                                             open_begin = TRUE, open_end = TRUE, gap_um = gap_um)))
+  tt <- sort(set$tooth$true_dist)[round(seq(1, nrow(set$tooth), length.out = k))]
+  vv <- sort(set$vert$true_dist)[round(seq(1, nrow(set$vert), length.out = k))]
+  v  <- tapply(vv[al$index2], al$index1, mean)
+  list(tooth = tt[as.integer(names(v))], vert = as.numeric(v), fit = al$normalizedDistance / sqrt(length(els)))
+}
+
+combo_tab <- do.call(rbind, lapply(fish, function(n){
+  mg <- path_of(n, "Mg_Ca_mav")
+  do.call(rbind, lapply(combos, function(els){
+    p <- if(length(els) == 1) mg else path_of(n, els)
+    data.frame(set = n, elements = paste(sub("_Ca.*$", "", els), collapse = "+"), n_elements = length(els),
+               vert_from = round(min(p$vert)), vert_to = round(max(p$vert)),
+               R = round(diff(range(p$tooth)) / diff(range(p$vert)), 1),
+               fit = round(p$fit, 3), shift_um = round(mean(abs(p$vert - mg$vert))))
+  }))
+}))
+```
+
+## Tables
+
+```{r tables, results = 'asis'}
+for(n in fish){
+  cat("\n\n###", n, "\n\n")
+  d <- combo_tab[combo_tab$set == n, ]
+  print(knitr::kable(d[order(d$n_elements, d$fit), -1], row.names = FALSE))
+}
+```
+
+## Figures
+
+```{r figures, results = 'asis', fig.height = 9}
+plot_combos <- function(n){
+  d <- combo_tab[combo_tab$set == n, ]
+  d$elements <- factor(d$elements, levels = rev(d$elements[order(d$n_elements, d$fit)]))
+  ggplot(d, aes(y = elements)) +
+    geom_vline(xintercept = sets[[n]]$bands, colour = "brown", linewidth = 0.3) +
+    geom_segment(aes(x = vert_from, xend = vert_to, yend = elements, colour = fit), linewidth = 2) +
+    geom_text(aes(x = vert_to, label = paste0(" ", shift_um)), hjust = 0, size = 2.8) +
+    scale_colour_viridis_c(direction = -1, name = "Fit\n(lower =\ncloser)") +
+    scale_x_continuous(expand = expansion(mult = c(0.02, 0.1))) +
+    theme_bw() +
+    theme(plot.caption = element_text(hjust = 0)) +
+    labs(x = "Vertebra (um)", y = NULL,
+         caption = paste(strwrap(paste(
+           "Each row is one mix of elements (Mg plus the others listed), aligned with align_multi() on the whole",
+           "records: the bar is where it puts the tooth on the vertebra, coloured by fit (normalised distance per",
+           "element). The number is the shift from Mg alone: mean distance (um of vertebra) between where the two",
+           "put each point of the tooth. Rows are grouped by number of elements, best fit first. Brown lines =",
+           "vertebral bands."), 115), collapse = "\n"))
+}
+for(n in fish){
+  cat("\n\n###", n, "\n\n")
+  print(plot_combos(n))
+}
+```
+
+```{r save}
+dir.create('data/output/dtw_final', showWarnings = FALSE)
+write.csv(combo_tab, 'data/output/dtw_final/element_combos.csv', row.names = FALSE)
+```

@@ -51,16 +51,17 @@ s <- stack_alignments(SMA001T_filt, SMA001V_filt, # 1
                                 8500, 9175, 9600))
 ```
 
-```{r sma001w-cuts-indi, fig.height = 14}
-s$plot(by_element = TRUE)
-```
-
-
 ```{r sma001w-indi, fig.height = 8}
 s$heat(by_element = TRUE)
 ```
-Sr and Mg: looks like an anchor between 4000 and 5000 on tooth with 6000 - 9500 on vert
-And then overall @ 3300 on tooth to 5100 (Mg, Mn, Zn, Li, Ba)
+
+```{r sma001w-cuts, fig.height = 14}
+s$plot(by_element = TRUE)
+```
+
+a couple options here looks like:
+- seeing overlap between Mg, Sr, and to lesser extent Mn and Zn from 14k - 50k 
+- and Li, Ba at the earlier part (4k - 35k). VERY promising
 
 ## SMA001 (bleach)
 
@@ -76,14 +77,15 @@ t <- stack_alignments(SMA001TB_filt, SMA001VB_filt, # removing end due to inc ho
                                 8000, 8800, 9300))
 ```
 
-```{r sma001b-cuts-indi, fig.height = 14}
-t$plot(by_element = TRUE)
-```
-
 ```{r sma001b-indi, fig.height = 8}
 t$heat(by_element = TRUE)
 ```
-2000 - 48000 tooth (Mg, Sr)
+
+```{r sma001b-cuts, fig.height = 14}
+t$plot(by_element = TRUE)
+```
+
+Ooh and all of them 22k - 50k?
 
 ## SMA002
 
@@ -99,91 +101,67 @@ u <- stack_alignments(SMA002T_filt, SMA002V_filt, # sawfish 1 - bleach
                                 4550, 7550))
 ```
 
-```{r sma002-cuts-indi, fig.height = 14}
-u$plot(by_element = TRUE)
-```
-
 ```{r sma002-indi, fig.height = 8}
 u$heat(by_element = TRUE) 
 ```
+Ba/Mg 10k-30k
+or Sr/Zn 19k-28k
 
-## Do the cuts behave as expected?
-
-For every span combination (loess span on the tooth `spanT` × on the vertebra
-`spanV`) and every element, the tooth is cut down as above, and two things are
-checked:
-
-- **Start**: for each end cut, running through the start cuts: does cutting the tooth
-  start later make the match start later on the vertebra?
-- **End**: for each start cut, running through the end cuts: does cutting the tooth
-  end earlier make the match end earlier on the vertebra?
-
-Within each, the trend shows if it happens over at least `min_steps` consecutive cuts
-(set below). A trend holds for that element and span combination if it shows for at
-least half of the other end's cuts. Elements are not compared with each other. For
-each set, a figure (one panel per element) and a table of the span combinations where
-either trend shows at all. The full table, every combination, is saved to
-`data/output/dtw_final/cut_trends_<set>.csv`.
-
-```{r sets}
-gap_um <- 350   
-sets <- list(
-  SMA001W = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
-  SMA001B = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
-  SMA002W = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
-
-# held constant across span combinations and sets
-sweep_settings <- list(elements = mavs2,
-                       spansT = c(0.01, 0.02, 0.03, 0.04, 0.05, 0.06), 
-                       spansV = c(0.01, 0.02, 0.03, 0.04, 0.05, 0.06),
-                       n = 1000, n_steps = c(16, 8),
-                       min_steps = 3)   # a trend has to hold this many consecutive cuts
-run_sweep <- function(set) with(sweep_settings, sweep_spans(
-  set$tooth, set$vert, elements, spansT, spansV, min_steps = min_steps, n = n, n_steps = n_steps, gap_um = gap_um,
-  workers = future::availableCores() - 1))
-show_trends <- function(tab) knitr::kable(transform(tab[tab$start_n > 0 | tab$end_n > 0, ],
-    start_n = sprintf("%d/%d", start_n, start_of), end_n = sprintf("%d/%d", end_n, end_of))[
-    c("spanT", "spanV", "element", "start", "start_n", "start_at", "start_cuts", "end", "end_n", "end_at", "end_cuts")],
-  row.names = FALSE)
-trends <- list()
+```{r sma002-cuts, fig.height = 14}
+u$plot(by_element = TRUE)
 ```
 
-- **start**: the start trend holds (shows for at least half of the end cuts).
-- **start_n**: for how many of the end cuts it shows; **start_at**: the range of those end cuts (tooth µm).
-- **start_cuts**: tooth a–b → vert c–d: across those, cutting the tooth start from a to b (µm) moved the start of the match from c to d on the vertebra.
-- **end, end_n, end_at, end_cuts**: the same for cutting the tooth end, within each start cut: cutting it from b back to a moved the end of the match from d back to c.
-- "-" = the trend never showed over `min_steps` consecutive cuts.
+## Where two elements agree: the anchor
 
-### SMA001 (water)
+The anchor is the longest stretch where the alignments are within `tol_um` of each other, 
+The pair is chosen per set (`anchor_pairs`, from the heat maps above). Its vertebra range is used as the anchor in 06d.
 
-```{r sweep-sma001w, fig.height = 8}
-trends$SMA001W <- run_sweep(sets$SMA001W)
-plot_trends(trends$SMA001W, sweep_settings$min_steps)
-show_trends(trends$SMA001W)
+```{r agree}
+anchor_pairs <- list(SMA001W1 = c("Mg_Ca_mav", "Sr_Ca_mav"),
+                     SMA001B1 = c("Mg_Ca_mav", "Sr_Ca_mav"), SMA001B2 = c("Mg_Ca_mav", "Ba_Ca_mav"),
+                     SMA002W1 = c("Mg_Ca_mav", "Ba_Ca_mav"), SMA002W2 = c("Zn_Ca_mav", "Sr_Ca_mav"))   
+agree_settings <- list(tol_um = 500, bin_um = 500, min_bins = 3)
+runs_by_set <- list(SMA001W1 = s, SMA001B1 = t, SMA001B2 = t, SMA002W1 = u, SMA002W2 = u)
+agree <- lapply(setNames(names(runs_by_set), names(runs_by_set)), function(n)
+  do.call(pair_agreement, c(list(runs_by_set[[n]], anchor_pairs[[n]][1], anchor_pairs[[n]][2]), agree_settings)))
+anchors <- lapply(agree, function(a) if(is.null(a$stretch)) NULL else c(a$stretch$vert_from, a$stretch$vert_to))
+knitr::kable(do.call(rbind, lapply(names(agree), function(n)
+  cbind(set = n, pair = paste(sub("_Ca.*$", "", anchor_pairs[[n]]), collapse = " + "),
+        if(is.null(agree[[n]]$stretch)) data.frame(tooth_from = NA, tooth_to = NA, vert_from = NA, vert_to = NA, median_diff_um = NA)
+        else agree[[n]]$stretch))), row.names = FALSE)
 ```
 
-### SMA001 (bleach)
+- **pair**: the two elements compared.
+- **tooth_from, tooth_to**: the stretch of tooth where the two agree (µm).
+- **vert_from, vert_to**: where that stretch sits on the vertebra (mean of the two elements); the anchor for 06d.
+- **median_diff_um**: how far apart the two put the tooth over the stretch (median, µm). NA = they never agree over 3 bins in a row.
 
-```{r sweep-sma001b, fig.height = 8}
-trends$SMA001B <- run_sweep(sets$SMA001B)
-plot_trends(trends$SMA001B, sweep_settings$min_steps)
-show_trends(trends$SMA001B)
+```{r agree-sma001w}
+agree$SMA001W1$plot
 ```
 
-### SMA002
+```{r agree-sma001b}
+agree$SMA001B1$plot
+agree$SMA001B2$plot
+```
 
-```{r sweep-sma002w, fig.height = 8}
-trends$SMA002W <- run_sweep(sets$SMA002W)
-plot_trends(trends$SMA002W, sweep_settings$min_steps)
-show_trends(trends$SMA002W)
+```{r agree-sma002w}
+agree$SMA002W1$plot
+agree$SMA002W2$plot
 ```
 
 ```{r save}
-# spans of the stack_alignments() calls above (s, t, u), kept with their runs
-down <- list(SMA001W = list(runs = s$runs, spanT = 0.02, spanV = 0.04),
-             SMA001B = list(runs = t$runs, spanT = 0.01, spanV = 0.02),
-             SMA002W = list(runs = u$runs, spanT = 0.01, spanV = 0.02))
-dir.create('data/output/dtw_final', showWarnings = FALSE)
-for(n in names(trends)) write.csv(trends[[n]], sprintf('data/output/dtw_final/cut_trends_%s.csv', n), row.names = FALSE)
-save(sets, trends, sweep_settings, gap_um, down, file = 'data/output/dtw_cache/06c.RData')
+gap_um <- 350   # tooth holes wider than this (um), as in 06a's add_mavs()
+sets <- list(
+  SMA001W1 = list(tooth = SMA001T_filt,  vert = SMA001V_filt,  bands = c(710, 1715, 2900, 5900, 8500, 9175, 9600)),
+  SMA001B1 = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
+  SMA001B2 = list(tooth = SMA001TB_filt, vert = SMA001VB_filt, bands = c(630, 1210, 2400, 5600, 8000, 8800, 9300)),
+  SMA002W1 = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)),
+  SMA002W2 = list(tooth = SMA002T_filt,  vert = SMA002V_filt,  bands = c(770, 1025, 1650, 2700, 3700, 4550, 7550)))
+
+# each version's stack_alignments() run: its runs and spans
+down <- lapply(runs_by_set, function(x) list(runs = x$runs, spanT = x$spanT, spanV = x$spanV))
+
+save(sets, gap_um, down, anchor_pairs, agree_settings, anchors,
+     file = 'data/output/dtw_cache/06c.RData')
 ```

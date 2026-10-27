@@ -77,18 +77,10 @@ h2 <- plot_holes(SMA002TH, trigger =  2.5, release = 1.25,
 SMA002TH <- h2$data[!h2$data$.hole, ] # lol! k
 ```
 
-#### Holes and smoothing
+#### Holes
 
 ```{r sma002th-gaps, fig.height = 8}
 find_gaps(SMA002TH$true_dist) # holes > 50 um (normal spacing ~8.6 um)
-plot_smoothing(SMA002TH, c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"), span = 0.01)
-```
-
-`trim_gaps()` drops points within `buffer` um of a hole:
-
-```{r water-gaps-trim, fig.height = 8}
-plot_smoothing(trim_gaps(SMA002TH, buffer = 100), c("Sr_Ca", "Ba_Ca", "Li_Ca", "Mg_Ca"),
-               span = 0.01, xlim = c(13000, 25000))
 ```
 
 ```{r sma002th}

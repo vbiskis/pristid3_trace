@@ -194,7 +194,8 @@ stack_alignments <- function(tooth, vert, elements,
                              tooth_bin, vert_bin, nrow(s$cuts)))
   }
   
-  out <- list(runs = runs, groups = groups, ref_points = ref_tab, ref_raw = refs, paths = paths, cuts = cuts)
+  out <- list(runs = runs, groups = groups, ref_points = ref_tab, ref_raw = refs, paths = paths, cuts = cuts,
+              spanT = spanT, spanV = spanV)
   out$plot <- function(...) p_seg(...)
   out$heat <- function(...) p_heat(out, bands = bands, ...)
   plot <- match.arg(plot)
@@ -204,79 +205,40 @@ stack_alignments <- function(tooth, vert, elements,
   invisible(out)
 }
 
-# cut_trends(): does cutting the tooth move each element's match on the vertebra the way it should? ----
-#' + start: for each end cut, run through the start cuts: cutting the tooth start later should start
-#'   the match later on the vertebra
-#' + end:   for each start cut, run through the end cuts: cutting the tooth end earlier should end the
-#'   match earlier on the vertebra
-#' within each, the trend shows if it holds over at least min_steps consecutive cuts (its longest run).
-#' per element: for how many of the other end's cuts it shows (_n of _of), which of those cuts
-#' (_at, tooth um), and the tooth -> vertebra range its runs cover (_cuts); a trend holds overall
-#' (start / end) if it shows for at least half of the other end's cuts
-cut_trends <- function(runs, min_steps = 3){
-  run_of <- function(t, v){                       # longest run where v keeps rising with t
-    o <- order(t); t <- t[o]; v <- v[o]
-    up <- rle(diff(v) > 0)
-    if(!any(up$values)) return(NULL)
-    k <- which(up$values)[which.max(up$lengths[up$values])]
-    if(up$lengths[k] + 1 < min_steps) return(NULL)
-    i <- sum(up$lengths[seq_len(k - 1)]) + 1
-    j <- i + up$lengths[k]
-    c(t[i], t[j], v[i], v[j])
+# pair_agreement(): where two elements map the same tooth to the same place on the vertebra ----
+#' from stack_alignments() paths: each element's median vertebra position (over all cuts) for every
+#' bin_um of tooth; the two agree where they are within tol_um. stretch = the longest run of agreeing
+#' bins (at least min_bins), its tooth range and vertebra range (mean of the two elements)
+pair_agreement <- function(s, el1 = "Mg_Ca_mav", el2 = "Sr_Ca_mav", tol_um = 500, bin_um = 500, min_bins = 3){
+  p <- s$paths[s$paths$element %in% c(el1, el2), ]
+  p$tooth <- round(p$tooth / bin_um) * bin_um
+  m <- aggregate(vert ~ tooth + element, p, median)
+  w <- merge(m[m$element == el1, c("tooth", "vert")], m[m$element == el2, c("tooth", "vert")],
+             by = "tooth", suffixes = c("_1", "_2"))
+  w$diff  <- w$vert_2 - w$vert_1
+  w$agree <- abs(w$diff) <= tol_um
+  r <- rle(w$agree); e <- cumsum(r$lengths); st <- e - r$lengths + 1
+  k <- which(r$values & r$lengths >= min_bins)
+  stretch <- if(length(k) == 0) NULL else {
+    k <- k[which.max(r$lengths[k])]; i <- st[k]:e[k]
+    data.frame(tooth_from = w$tooth[st[k]], tooth_to = w$tooth[e[k]],
+               vert_from = round(mean(c(w$vert_1[st[k]], w$vert_2[st[k]]))),
+               vert_to   = round(mean(c(w$vert_1[e[k]], w$vert_2[e[k]]))),
+               median_diff_um = round(median(abs(w$diff[i]))))
   }
-  trend <- function(d, by, t, v){                  # within each cut of the other end
-    g <- Filter(function(x) nrow(x) >= min_steps, split(d, d[[by]]))
-    r <- lapply(g, function(x) run_of(x[[t]], x[[v]]))
-    ok <- !vapply(r, is.null, logical(1))
-    m <- do.call(rbind, r[ok])
-    list(n = sum(ok), of = length(r),
-         at = if(any(ok)) sprintf("%.0f-%.0f", min(as.numeric(names(r)[ok])), max(as.numeric(names(r)[ok]))) else "-",
-         cuts = if(any(ok)) sprintf("tooth %.0f-%.0f -> vert %.0f-%.0f", min(m[, 1]), max(m[, 2]), min(m[, 3]), max(m[, 4])) else "-")
-  }
-  out <- do.call(rbind, lapply(split(runs, runs$element), function(d){
-    s <- trend(d, "t_end", "t_start", "v_start")
-    e <- trend(d, "t_start", "t_end", "v_end")
-    data.frame(element = sub("_Ca.*$", "", d$element[1]),
-               start = s$n > 0 && s$n >= s$of / 2, start_n = s$n, start_of = s$of, start_at = s$at, start_cuts = s$cuts,
-               end   = e$n > 0 && e$n >= e$of / 2, end_n = e$n,   end_of = e$of,   end_at = e$at,   end_cuts = e$cuts)
-  }))
-  rownames(out) <- NULL
-  out
-}
-
-# sweep_spans(): cut_trends() for every spanT x spanV combination ----
-#' everything else passed to stack_alignments() through ... (n, n_steps, gap_um, ...)
-sweep_spans <- function(tooth, vert, elements, spansT, spansV, min_steps = 3, workers = 1, ...){
-  grid <- expand.grid(spanT = spansT, spanV = spansV)
-  one  <- function(k) cbind(grid[k, ], cut_trends(suppressMessages(stack_alignments(
-    tooth, vert, elements, spanT = grid$spanT[k], spanV = grid$spanV[k], plot = "none", ...))$runs, min_steps),
-    row.names = NULL)
-  if(workers > 1){
-    old <- future::plan(future::multisession, workers = workers)
-    on.exit(future::plan(old), add = TRUE)
-    out <- furrr::future_map(seq_len(nrow(grid)), one, .options = furrr::furrr_options(packages = c("dtw", "ggplot2")))
-  } else out <- lapply(seq_len(nrow(grid)), one)
-  do.call(rbind, out)
-}
-
-# plot_trends(): which trends hold, per element and span combination ----
-plot_trends <- function(tab, min_steps = 3){
-  tab$trend <- factor(ifelse(tab$start & tab$end, "start and end", ifelse(tab$start, "start only",
-                      ifelse(tab$end, "end only", "neither"))),
-                      levels = c("start and end", "start only", "end only", "neither"))
-  ggplot(tab, aes(factor(spanV), factor(spanT), fill = trend)) +
-    geom_tile(colour = "white") +
-    geom_text(aes(label = sprintf("%d/%d\n%d/%d", start_n, start_of, end_n, end_of)), size = 3.2) +
-    facet_wrap(~ element) +
-    scale_fill_manual(values = c("start and end" = "#1b9e77", "start only" = "#a6d96a",
-                                 "end only" = "#fdae61", "neither" = "grey85"), drop = FALSE) +
+  n1 <- sub("_Ca.*$", "", el1); n2 <- sub("_Ca.*$", "", el2)
+  long <- rbind(data.frame(tooth = w$tooth, vert = w$vert_1, element = n1),
+                data.frame(tooth = w$tooth, vert = w$vert_2, element = n2))
+  plot <- ggplot(long, aes(tooth, vert, colour = element)) +
+    { if(!is.null(stretch)) ggplot2::annotate("rect", xmin = stretch$tooth_from, xmax = stretch$tooth_to,
+                                     ymin = -Inf, ymax = Inf, fill = "grey85") } +
+    geom_line(linewidth = 0.9) +
     theme_bw() +
     theme(plot.caption = element_text(hjust = 0)) +
-    labs(x = "spanV (loess span on the vertebra)", y = "spanT (loess span on the tooth)", fill = NULL,
-         caption = paste(strwrap(paste(
-           "Each tile is one span combination for one element; labels = start n/of, end n/of. Start: for each",
-           "end cut, cutting the tooth start later made the match start later on the vertebra over at least %d",
-           "consecutive cuts - n of the end cuts. End: for each start cut, cutting the tooth end earlier made the",
-           "match end earlier over at least %d consecutive cuts - n of the start cuts. A trend holds (colour) if",
-           "it shows for at least half of the other end's cuts."), 115), collapse = "\n") |> sprintf(min_steps, min_steps))
+    labs(x = "Tooth (um)", y = "Vertebra (um)", colour = NULL,
+         caption = paste(strwrap(sprintf(paste(
+           "Where %s and %s put each %g um of tooth on the vertebra (median over all cuts). Grey = the longest",
+           "stretch where the two are within %g um of each other (at least %d bins): the anchor."),
+           n1, n2, bin_um, tol_um, min_bins), 115), collapse = "\n"))
+  list(bins = w, stretch = stretch, plot = plot)
 }

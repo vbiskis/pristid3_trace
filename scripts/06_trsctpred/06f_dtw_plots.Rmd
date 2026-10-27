@@ -1,5 +1,5 @@
 ---
-title: "06f · DTW warping and misfit"
+title: "06f · DTW plots"
 author: "Nikki Biskis"
 date: "Rendered `r format(Sys.time(), '%d %b %Y %H:%M')`"
 output:
@@ -10,141 +10,161 @@ output:
 
 - **Paper:** The potential of elemental analysis in determining origin of sawfish rostra
 - **DOI:** tbd
-- **Written:** 30 Aug 2026 (warping and misfit Oct 2026)
-- **Content:** dynamic time warping VI: how the warping and the misfit vary along the vertebra, and what goes with poor alignment
+- **Written:** summary Oct 2026
+- **Content:** plots: match_window over the anchor, Mg's window, the build-out and the align_multi range, plus the summary table
 
-Starts from 06a, 06c, 06d and 06e (`data/output/dtw_cache/`); uses 06d's build-out
-windows. The earlier version is in `original/06f_dtw_plots.R`. For each window:
+Starts from 06a - 06d (`data/output/dtw_cache/`). The earlier version is in
+`original/06e_dtw_rates.R`. For each set, `match_window()` with all six elements is run
+over four stretches of the vertebra, each showing the overlay and the warp path:
 
-- **Growth ratio**: µm of tooth matched per µm of vertebra (`ratio`).
-- **Warp** of each element: how far its path through the window departs from an even
-  pace, as % of the window (0 = no warping).
-- **Misfit** of each element: its DTW fit in the window (normalised distance; higher =
-  poorer match), and how far apart the elements place the tooth piece (`disagree_pct`).
-- **Possible causes**: how much the vertebra window varies (`signal`; flat stretches are
-  hard to place), the share of the matched tooth piece inside holes, median In:Ca in
-  the tooth piece and in the vertebra window (contamination), and the distance from
-  the window to the nearest vertebral band.
+1. **Anchor**: where the set's anchor pair maps the same tooth to the same place (06c).
+2. **Mg window**: where Mg places the whole, uncut tooth (06c); Sr's if Mg isn't in the run (see 06d).
+3. **Build-out**: the whole stretch 06d's windows built out to, from the anchor.
+4. **align_multi range**: the stretch `align_multi()` matched the tooth to, run on the
+   whole records with all six elements and the same spans.
+
+Each lets the tooth stretch by 2–8 µm of tooth per µm of vertebra. The table at the
+end gives all four, with the build-out windows' own statistics and `align_multi()` itself.
 
 ```{r setup, include = FALSE}
 knitr::opts_knit$set(root.dir = here::here()) # run from the project root, like the .R scripts
-knitr::opts_chunk$set(fig.width = 10, fig.height = 8, dpi = 120,
+knitr::opts_chunk$set(fig.width = 10, fig.height = 9, dpi = 120,
                       message = FALSE, warning = FALSE, comment = "#>")
 ```
 
 ```{r load}
 source('helpers/microHelp.R')
 source('helpers/functions/fxn_mavs.R')
-source('helpers/functions/fxn_dtw.R')    # also find_gaps(), in_gaps()
-load('data/output/dtw_cache/06a.RData')  # objects from 06a
-load('data/output/dtw_cache/06c.RData')  # sets, gap_um from 06c
-load('data/output/dtw_cache/06d.RData')  # up_settings from 06d
-load('data/output/dtw_cache/06e.RData')  # built (matched build-out windows) from 06e
+source('helpers/functions/fxn_dtw.R')
+source('helpers/functions/fxn_warps.R')
+load('data/output/dtw_cache/06a.RData') # objects from 06a
+load('data/output/dtw_cache/06c.RData') # sets, gap_um, down, anchors from 06c
+load('data/output/dtw_cache/06d.RData') # up, built (build-out windows) from 06d
 ```
 
-```{r causes}
-# candidate causes of misfit, per window
-built <- do.call(rbind, lapply(split(built, built$set), function(b){
-  set   <- sets[[b$set[1]]]
-  holes <- find_gaps(set$tooth$true_dist, gap_um)
-  b$hole_pct <- sapply(seq_len(nrow(b)), function(i){
-    x <- seq(b$tooth_start[i], b$tooth_end[i], length.out = 200)
-    100 * mean(in_gaps(x, holes))
-  })
-  b$In_tooth <- sapply(seq_len(nrow(b)), function(i)
-    median(set$tooth$In_Ca[set$tooth$true_dist >= b$tooth_start[i] & set$tooth$true_dist <= b$tooth_end[i]]))
-  b$In_vert <- sapply(seq_len(nrow(b)), function(i)
-    median(set$vert$In_Ca[set$vert$true_dist >= b$v_from[i] & set$vert$true_dist <= b$v_to[i]]))
-  b$band_dist <- sapply(b$v_mid, function(v) min(abs(v - set$bands)))
-  b
+```{r align-multi, fig.show = 'hide'}
+check_settings <- list(ratio_range = c(2, 8), n_ratios = 24)
+checks <- list()
+
+# align_multi() on the whole records, all elements; its path in um
+force_align <- function(n, k = 1000){
+  set <- sets[[n]]; d <- down[[n]]
+  invisible(capture.output(al <- align_multi(set$tooth, set$vert, mavs2, n = k,
+                                             spanT = d$spanT, spanV = d$spanV, open_begin = TRUE,
+                                             open_end = TRUE, gap_um = gap_um)))
+  tt <- sort(set$tooth$true_dist)[round(seq(1, nrow(set$tooth), length.out = k))]
+  vv <- sort(set$vert$true_dist)[round(seq(1, nrow(set$vert), length.out = k))]
+  list(path = data.frame(set = n, vert = vv[al$index2], tooth = tt[al$index1]),
+       norm_dist = al$normalizedDistance)
+}
+fa <- lapply(setNames(names(up), names(up)), force_align)   # the versions 06d built
+
+# build-out windows (all versions, from 06d)
+built$v_mid <- (built$v_from + built$v_to) / 2
+built$t_mid <- (built$tooth_start + built$tooth_end) / 2
+built_range <- function(n) c(min(built$v_from[built$set == n]), max(built$v_to[built$set == n]))
+
+# Mg's window: where Mg places the whole (uncut) tooth in 06c's run (Sr's if Mg isn't in it)
+mg_window <- function(n){
+  r <- down[[n]]$runs
+  for(el in c("Mg_Ca_mav", "Sr_Ca_mav")){
+    x <- r[r$element == el & r$t_start == min(r$t_start) & r$t_end == max(r$t_end), ]
+    if(nrow(x)) return(c(x$v_start, x$v_end))
+  }
+  NULL
+}
+
+# one match_window() over a stretch of vertebra, all elements, with its figure
+preps <- lapply(setNames(names(up), names(up)), function(n)
+  prep_records(sets[[n]]$tooth, sets[[n]]$vert, mavs2, down[[n]]$spanV, Inf, gap_um = gap_um))
+win_check <- function(n, label, v){
+  cbind(set = n, check = label,
+        match_window(sets[[n]]$tooth, sets[[n]]$vert, mavs2, v_from = v[1], win = diff(v),
+                     spanV = down[[n]]$spanV, ratio_range = check_settings$ratio_range,
+                     n_ratios = check_settings$n_ratios, prep = preps[[n]], gap_um = gap_um,
+                     plot = TRUE, bands = sets[[n]]$bands))
+}
+```
+
+## Checks
+
+```{r checks, results = 'asis', fig.height = 10}
+for(n in names(up)){
+  cat("\n\n###", n, "\n\n")
+  ranges <- list("1 Anchor" = anchors[[n]], "2 Mg window" = mg_window(n),
+                 "3 Build-out" = built_range(n), "4 align_multi range" = range(fa[[n]]$path$vert))
+  for(k in names(ranges)){
+    if(length(ranges[[k]]) != 2) next   # e.g. neither Mg nor Sr in the run
+    cat("\n\n**", k, "** (vertebra ", round(ranges[[k]][1]), "-", round(ranges[[k]][2]), " um)\n\n", sep = "")
+    checks[[length(checks) + 1]] <- win_check(n, k, ranges[[k]])
+  }
+}
+checks <- do.call(rbind, checks)
+```
+
+## Summary table
+
+```{r summary}
+summary_tab <- do.call(rbind, lapply(names(up), function(n){
+  b <- built[built$set == n, ]; p <- fa[[n]]$path; ck <- checks[checks$set == n, ]
+  fit <- lm(t_mid ~ v_mid, data = b)
+  rbind(
+    data.frame(set = n, result = ck$check, windows = "1",
+               vert_from = ck$v_from, vert_to = ck$v_to, tooth_from = ck$tooth_start, tooth_to = ck$tooth_end,
+               R = ck$ratio, R_r2 = NA, fit = ck$cost, disagree_pct = ck$disagree_pct),
+    data.frame(set = n, result = "Build-out windows", windows = sprintf("%d / %d", nrow(b), nrow(up[[n]])),
+               vert_from = min(b$v_from), vert_to = max(b$v_to), tooth_from = min(b$tooth_start), tooth_to = max(b$tooth_end),
+               R = coef(fit)[2], R_r2 = summary(fit)$r.squared, fit = median(b$cost), disagree_pct = median(b$disagree_pct)),
+    data.frame(set = n, result = "align_multi", windows = "",
+               vert_from = min(p$vert), vert_to = max(p$vert), tooth_from = min(p$tooth), tooth_to = max(p$tooth),
+               R = (max(p$tooth) - min(p$tooth)) / (max(p$vert) - min(p$vert)), R_r2 = NA,
+               fit = fa[[n]]$norm_dist, disagree_pct = NA))
 }))
-
-els  <- sub("_Ca.*$", "", up_settings$elements)
-long <- do.call(rbind, lapply(up_settings$elements, function(el)
-  data.frame(set = built$set, v_mid = built$v_mid, element = sub("_Ca.*$", "", el),
-             cost = built[[paste0("cost_", el)]], warp = built[[paste0("warp_", el)]])))
-bands <- do.call(rbind, lapply(names(sets), function(n) data.frame(set = n, band = sets[[n]]$bands)))
+num <- c("vert_from", "vert_to", "tooth_from", "tooth_to")
+summary_tab[num] <- lapply(summary_tab[num], round)
+summary_tab[c("R", "R_r2", "fit", "disagree_pct")] <- lapply(summary_tab[c("R", "R_r2", "fit", "disagree_pct")], round, 2)
+rownames(summary_tab) <- NULL
+knitr::kable(summary_tab)
 ```
 
-## Growth ratio along the vertebra
+- **result**: 1–4 = the `match_window()` checks above; **Build-out windows** = 06d's 500 µm windows taken together; **align_multi** = the DTW path over the whole records.
+- **windows**: for the build-out, windows that matched, of all windows.
+- **vert_from, vert_to, tooth_from, tooth_to**: where the result starts and ends on the vertebra and the tooth (µm).
+- **R**: growth ratio, µm of tooth per µm of vertebra. For the build-out windows, the slope of matched tooth position on vertebra position, and **R_r2** how straight that is (1 = constant growth ratio).
+- **fit**: DTW fit (normalised distance, z-score units; lower = closer match). For the build-out windows, the median over them.
+- **disagree_pct**: how far apart the elements place the matched tooth piece, as a share of the piece.
 
-```{r ratio, fig.height = 7}
-R_all <- do.call(rbind, lapply(split(built, built$set), function(b)
-  data.frame(set = b$set[1], R = coef(lm(t_mid ~ v_mid, data = b))[2])))
-ggplot(built, aes(v_mid, ratio)) +
+## Figure
+
+```{r figure}
+bands <- do.call(rbind, lapply(names(up), function(n) data.frame(set = n, band = sets[[n]]$bands)))
+anch  <- do.call(rbind, lapply(names(up), function(n) data.frame(set = n, from = anchors[[n]][1], to = anchors[[n]][2])))
+paths <- do.call(rbind, lapply(fa, `[[`, "path"))
+p <- ggplot() +
+  geom_rect(data = anch, aes(xmin = from, xmax = to, ymin = -Inf, ymax = Inf), fill = "grey88") +
   geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
-  geom_hline(data = R_all, aes(yintercept = R), linetype = "dashed") +
-  geom_line(colour = "grey50") + geom_point(aes(colour = disagree_pct)) +
+  geom_line(data = paths, aes(vert, tooth), colour = "#1b9e77", linewidth = 0.8) +
+  geom_segment(data = checks[checks$check == "3 Build-out", ], aes(x = v_from, xend = v_to, y = tooth_start, yend = tooth_end),
+               colour = "#d95f02", linewidth = 1.2) +
+  geom_point(data = built, aes(v_mid, t_mid, size = signal, colour = disagree_pct)) +
   scale_colour_viridis_c(name = "Elements\ndisagree (%)") +
-  facet_wrap(~ set, ncol = 1, scales = "free_x") +
-  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
-  labs(x = "Vertebra (um)", y = "Growth ratio (um tooth per um vertebra)",
-       caption = paste("Growth ratio chosen by each build-out window. Dashed = the build-out's overall growth ratio",
-                       "\n(slope of matched tooth on vertebra position). Brown lines = vertebral bands."))
-```
-
-## Misfit and warp of each element
-
-```{r misfit, fig.height = 9}
-ggplot(long, aes(v_mid, cost, colour = element)) +
-  geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
-  geom_line() +
+  scale_size_continuous(range = c(0.5, 3), name = "Signal") +
   facet_wrap(~ set, ncol = 1, scales = "free") +
-  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
-  labs(x = "Vertebra (um)", y = "Misfit (DTW normalised distance)", colour = NULL,
-       caption = paste("Each element's fit between the vertebra window and its matched tooth piece; higher = poorer match.",
-                       "\nBrown lines = vertebral bands."))
-```
-
-```{r warp, fig.height = 9}
-ggplot(long, aes(v_mid, warp, colour = element)) +
-  geom_vline(data = bands, aes(xintercept = band), colour = "brown", linewidth = 0.3) +
-  geom_line() +
-  facet_wrap(~ set, ncol = 1, scales = "free") +
-  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
-  labs(x = "Vertebra (um)", y = "Warp (% of the window)", colour = NULL,
-       caption = paste("How far each element's path through the window departs from an even pace (straight diagonal),",
-                       "\nas % of the window; 0 = no warping. Brown lines = vertebral bands."))
-```
-
-## What goes with poor alignment?
-
-Spearman correlation of each window's misfit (median over the elements) and of how
-far apart the elements place the tooth piece, with each possible cause.
-
-```{r causes-table}
-built$misfit <- apply(built[paste0("cost_", up_settings$elements)], 1, median)
-causes <- c(signal = "Vertebra signal", hole_pct = "Holes in tooth piece (%)", In_tooth = "In:Ca, tooth piece",
-            In_vert = "In:Ca, vertebra window", band_dist = "Distance to nearest band (um)")
-cause_tab <- do.call(rbind, lapply(split(built, built$set), function(b) do.call(rbind, lapply(names(causes), function(cz){
-  ct <- function(y) suppressWarnings(cor.test(b[[cz]], b[[y]], method = "spearman"))
-  m <- ct("misfit"); d <- ct("disagree_pct")
-  data.frame(set = b$set[1], cause = causes[[cz]],
-             rho_misfit = round(m$estimate, 2), p_misfit = signif(m$p.value, 2),
-             rho_disagree = round(d$estimate, 2), p_disagree = signif(d$p.value, 2))
-}))))
-rownames(cause_tab) <- NULL
-knitr::kable(cause_tab)
-```
-
-- **rho_misfit, p_misfit**: Spearman correlation (and p-value) between the cause and the window's misfit (median over elements).
-- **rho_disagree, p_disagree**: the same with how far apart the elements place the tooth piece.
-- Reading it: a positive rho with **In:Ca** points to contamination; with **holes**, to missing tooth data; a negative rho with **vertebra signal** means flat stretches are hard to place; a negative rho with **distance to nearest band** means poorer matches close to bands (slow growth compresses the vertebra there). NA = the cause doesn't vary in that set (e.g. no holes).
-
-```{r causes-plot, fig.height = 9}
-cl <- do.call(rbind, lapply(names(causes), function(cz)
-  data.frame(set = built$set, cause = causes[[cz]], value = built[[cz]], misfit = built$misfit)))
-ggplot(cl, aes(value, misfit, colour = set)) +
-  geom_point(alpha = 0.7) +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 0.6) +
-  facet_wrap(~ cause, scales = "free_x", ncol = 2) +
-  theme_bw() + theme(plot.caption = element_text(hjust = 0)) +
-  labs(x = NULL, y = "Misfit (median over elements)", colour = NULL,
-       caption = "Each point is one build-out window; lines = linear trend per set.")
+  theme_bw() +
+  theme(plot.caption = element_text(hjust = 0)) +
+  labs(x = "Vertebra (um)", y = "Tooth (um)",
+       caption = paste(strwrap(paste(
+         "Points = build-out windows (x = vertebra window centre, y = centre of the matched tooth piece; colour = how",
+         "far apart the elements place it; size = how much the vertebra window varies). Orange line = match_window()",
+         "over the whole built-out stretch (check 3; start to end, slope = growth ratio). Green line = align_multi()",
+         "path over the whole records. Grey band = anchor; brown lines = vertebral bands."), 115), collapse = "\n"))
+p
 ```
 
 ```{r save}
 dir.create('data/output/dtw_final', showWarnings = FALSE)
-write.csv(cause_tab, 'data/output/dtw_final/misfit_causes.csv', row.names = FALSE)
-write.csv(built, 'data/output/dtw_final/buildout_windows.csv', row.names = FALSE)
+dir.create('figures/dtw', showWarnings = FALSE)
+write.csv(summary_tab, 'data/output/dtw_final/summary.csv', row.names = FALSE)
+ggsave('figures/dtw/summary.png', p, width = 10, height = 9, dpi = 300)
+save(summary_tab, checks, built, fa, file = 'data/output/dtw_cache/06f.RData')
 ```

@@ -7,7 +7,7 @@
 #' + each file's old .md and figure folder are replaced, so no stale plots are left behind
 #'   (if a render fails, the old figures are put back)
 #' + 06a saves data/output/dtw_cache/06a.RData, which 06b-06f load; 06c (warp down) saves 06c.RData,
-#'   06d (warp up) saves 06d.RData, 06e (final table) saves 06e.RData, and 06f (figures) uses all three
+#'   06d (warp up) saves 06d.RData, 06f (plots) saves 06f.RData, and 06g (stats) uses them; 06e needs only 06a
 #' + logs go to data/output/dtw_cache/logs/
 #' from R (RStudio / VS Code), all of them:
 #'   source('scripts/06_trsctpred/render_06.R')
@@ -32,11 +32,12 @@ source('helpers/functions/fxn_render.R', local = TRUE)
 
 docs <- c('06a' = '06a_dtw_prep.Rmd',
           '06b' = '06b_dtw_run.Rmd',
-          '06c' = '06c_dtw_warpdown.Rmd',   # warp down: cutting the tooth, sweeps, warp-down mix
-          '06d' = '06d_dtw_warpup.Rmd',     # warp up: random-order + sequential windows, warp-up mix
-          '06e' = '06e_dtw_rates.Rmd',      # final table: Mg matches and forced alignments
-          '06f' = '06f_dtw_plots.Rmd')      # final figures
-needs <- c('06b' = '06a', '06c' = '06a', '06d' = '06c', '06e' = '06d', '06f' = '06e')
+          '06c' = '06c_dtw_warpdown.Rmd',   # warp down: cutting the tooth, heat maps, anchor pairs
+          '06d' = '06d_dtw_warpup.Rmd',     # warp up: build from the anchor, random order within it
+          '06e' = '06e_dtw_combos.Rmd',     # align_multi with every mix of elements containing Mg
+          '06f' = '06f_dtw_plots.Rmd',      # plots: match_window checks + summary
+          '06g' = '06g_dtw_stats.Rmd')      # stats: warping and misfit
+needs <- c('06b' = '06a', '06c' = '06a', '06d' = '06c', '06e' = '06a', '06f' = '06d', '06g' = '06f')
 
 pick <- setdiff(commandArgs(trailingOnly = TRUE), '--args')
 if(length(pick) == 0) pick <- names(docs)
